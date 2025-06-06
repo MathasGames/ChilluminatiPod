@@ -1272,9 +1272,6 @@
                         The deep researcher who brings meticulously crafted tales of serial killers, 
                         UFO encounters, and conspiracy theories. Always has receipts.
                     </p>
-                    <div class="host-secret" id="mathas-secret">
-                        <p>CLASSIFIED: Subject believes in extraterrestrial contact. Has collected over 500 UFO sighting reports. Approach with caution.</p>
-                    </div>
                 </div>
                 <div class="host-card" onclick="revealHostSecret('jesse')">
                     <div class="host-image-container">
@@ -1674,8 +1671,28 @@
         // Host Secrets
         function revealHostSecret(host) {
             showTerminalMessage('ACCESSING CLASSIFIED FILES...');
+            
+            const secretMessages = {
+                'mathas': {
+                    title: 'MIKE "MATHAS" MARTIN - FILE #001',
+                    content: 'CLASSIFIED INTEL: Subject believes in extraterrestrial contact. Has collected over 500 UFO sighting reports. Known to spend hours researching government documents. Approach with caution - may attempt to show you "evidence."'
+                },
+                'jesse': {
+                    title: 'JESSE COX - FILE #002', 
+                    content: 'CLASSIFIED INTEL: Despite public skepticism, subject has reported three unexplained experiences. Files sealed by request. Secretly wants to believe but maintains skeptical facade. Once saw something in the sky he "couldn\'t explain."'
+                },
+                'alex': {
+                    title: 'ALEX FACIANE - FILE #003',
+                    content: 'CLASSIFIED INTEL: Subject possesses extensive knowledge of occult practices. Currently monitoring for anomalous activities. Has been known to attempt summoning rituals "as a joke." Success rate: REDACTED.'
+                }
+            };
+            
             setTimeout(() => {
-                document.getElementById('secretMessage').textContent = `CLASSIFIED: ${host.toUpperCase()} file accessed. This information is for authorized personnel only.`;
+                const secret = secretMessages[host];
+                document.getElementById('secretMessage').innerHTML = `
+                    <strong>${secret.title}</strong><br><br>
+                    ${secret.content}
+                `;
                 document.getElementById('secretCode').classList.add('active');
             }, 1000);
         }
