@@ -585,6 +585,43 @@
             transform: rotateY(180deg);
         }
 
+        .host-image-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .host-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--vhs-purple);
+            filter: grayscale(100%) contrast(1.2);
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+
+        .host-card:hover .host-image {
+            filter: grayscale(50%) contrast(1.1);
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.8);
+            transform: scale(1.05);
+        }
+
+        .host-id {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000;
+            color: var(--vhs-purple);
+            padding: 2px 10px;
+            font-size: 10px;
+            font-family: 'Courier New', monospace;
+            border: 1px solid var(--vhs-purple);
+            letter-spacing: 1px;
+        }
+
         .host-name {
             font-size: 28px;
             color: var(--vhs-purple);
@@ -1225,6 +1262,10 @@
             <div class="terminal-header">PERSONNEL FILES ACCESSED</div>
             <div class="hosts-grid">
                 <div class="host-card" onclick="revealHostSecret('mathas')">
+                    <div class="host-image-container">
+                        <img src="./images/MikeWeb.jpg" alt="Mike Martin" class="host-image">
+                        <div class="host-id">SUBJECT-001</div>
+                    </div>
                     <h3 class="host-name">Mike "Mathas" Martin</h3>
                     <p class="host-role">Co-Host</p>
                     <p class="host-bio">
@@ -1236,6 +1277,10 @@
                     </div>
                 </div>
                 <div class="host-card" onclick="revealHostSecret('jesse')">
+                    <div class="host-image-container">
+                        <img src="./images/JesseCoxWeb.png" alt="Jesse Cox" class="host-image">
+                        <div class="host-id">SUBJECT-002</div>
+                    </div>
                     <h3 class="host-name">Jesse Cox</h3>
                     <p class="host-role">Co-Host</p>
                     <p class="host-bio">
@@ -1247,6 +1292,10 @@
                     </div>
                 </div>
                 <div class="host-card" onclick="revealHostSecret('alex')">
+                    <div class="host-image-container">
+                        <img src="./images/AlexFacianeWeb.jpg" alt="Alex Faciane" class="host-image">
+                        <div class="host-id">SUBJECT-003</div>
+                    </div>
                     <h3 class="host-name">Alex Faciane</h3>
                     <p class="host-role">Co-Host</p>
                     <p class="host-bio">
