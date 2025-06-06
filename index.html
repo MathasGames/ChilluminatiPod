@@ -8,12 +8,12 @@
     <!-- Open Graph / Social Media -->
     <meta property="og:title" content="Chilluminati Podcast">
     <meta property="og:description" content="Bigfoot. Aliens. Ghosts. And a Skinwalker Abe Lincoln. New episodes every Saturday!">
-    <meta property="og:image" content="https://i.imgur.com/Q5yDblI.jpeg">
+    <meta property="og:image" content="https://your-site-name.netlify.app/images/logo.png">
     <meta property="og:url" content="https://chilluminatipodcast.com">
     <meta property="og:type" content="website">
     
     <title>Chilluminati Podcast - Weird, Mysterious, and Hilarious</title>
-    <link rel="icon" type="image/png" href="https://i.imgur.com/C1Eupp5.png">
+    <link rel="icon" type="image/png" href="./images/logo.png">
     <style>
         * {
             margin: 0;
@@ -169,24 +169,22 @@
         }
 
         .logo img {
-            height: 60px;
+            height: 80px;
             width: auto;
             filter: drop-shadow(0 0 20px var(--neon-green)) brightness(1.1);
             transition: all 0.3s;
+            animation: logo-pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes logo-pulse {
+            0%, 100% { filter: drop-shadow(0 0 20px var(--neon-green)) brightness(1.1); }
+            50% { filter: drop-shadow(0 0 30px var(--neon-green)) brightness(1.15); }
         }
 
         .logo:hover img {
-            filter: drop-shadow(0 0 30px var(--neon-green)) brightness(1.2);
+            filter: drop-shadow(0 0 40px var(--neon-green)) brightness(1.25);
             transform: scale(1.05);
-        }
-
-        .logo-text {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--neon-green);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-shadow: 0 0 10px var(--neon-green);
+            animation: none;
         }
 
         .nav-links {
@@ -617,57 +615,280 @@
             font-size: 14px;
         }
 
-        /* Episodes Grid */
+        /* Episodes Section - Random Episode Machine */
         .episodes {
             padding: 80px 0;
             background: rgba(0, 255, 255, 0.05);
         }
 
-        .episodes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 30px;
-            margin-top: 50px;
+        .episode-machine {
+            max-width: 600px;
+            margin: 50px auto;
+            text-align: center;
         }
 
-        .episode-item {
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid var(--vhs-blue);
-            padding: 25px;
+        .machine-display {
+            background: #000;
+            border: 3px solid var(--vhs-blue);
+            border-radius: 10px;
+            padding: 40px;
+            margin-bottom: 30px;
             position: relative;
-            transition: all 0.3s;
-            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 
+                0 0 50px rgba(0, 255, 255, 0.3),
+                inset 0 0 50px rgba(0, 255, 255, 0.1);
         }
 
-        .episode-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
-        }
-
-        .episode-item h3 {
-            color: var(--vhs-blue);
-            margin-bottom: 10px;
-        }
-
-        .episode-item p {
-            color: #ccc;
-            font-size: 14px;
-        }
-
-        .episode-tags {
-            margin-top: 15px;
+        .machine-screen {
+            background: rgba(0, 255, 255, 0.05);
+            border: 2px solid var(--vhs-blue);
+            padding: 30px;
+            margin-bottom: 20px;
+            min-height: 150px;
             display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
-        .episode-tag {
-            background: rgba(0, 255, 255, 0.1);
-            border: 1px solid var(--vhs-blue);
+        .slot-number {
+            font-size: 72px;
+            font-weight: bold;
+            color: var(--neon-green);
+            text-shadow: 0 0 20px var(--neon-green);
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .slot-number.spinning {
+            animation: slot-spin 0.1s infinite;
+        }
+
+        @keyframes slot-spin {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+
+        .slot-title {
+            font-size: 18px;
             color: var(--vhs-blue);
-            padding: 2px 8px;
-            font-size: 10px;
             text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .machine-lights {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .light {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #333;
+            border: 2px solid #666;
+            transition: all 0.3s;
+        }
+
+        .light.active {
+            background: var(--neon-green);
+            box-shadow: 0 0 20px var(--neon-green);
+            border-color: var(--neon-green);
+        }
+
+        .machine-controls {
+            margin-bottom: 40px;
+        }
+
+        .dos-header {
+            font-family: 'Courier New', monospace;
+            color: var(--neon-green);
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-align: left;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0.7;
+        }
+
+        .dos-header::after {
+            content: '_';
+            animation: cursor-blink 1s steps(2) infinite;
+        }
+
+        @keyframes cursor-blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .spin-button {
+            background: #000;
+            border: 3px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 20px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.1s;
+            font-family: 'Courier New', monospace;
+            box-shadow: 
+                4px 4px 0 #0a0a0a,
+                8px 8px 0 #111,
+                0 0 20px rgba(57, 255, 20, 0.5);
+        }
+
+        .spin-button:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 
+                6px 6px 0 #0a0a0a,
+                10px 10px 0 #111,
+                0 0 40px rgba(57, 255, 20, 0.8);
+        }
+
+        .spin-button:active {
+            transform: translate(0, 0);
+            box-shadow: 
+                2px 2px 0 #0a0a0a,
+                4px 4px 0 #111,
+                0 0 10px rgba(57, 255, 20, 0.5);
+        }
+
+        .spin-button .button-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* VHS noise overlay */
+        .spin-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(57, 255, 20, 0.03) 2px,
+                rgba(57, 255, 20, 0.03) 4px
+            );
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .spin-button:hover::before {
+            opacity: 1;
+            animation: vhs-noise 0.3s infinite;
+        }
+
+        @keyframes vhs-noise {
+            0%, 100% { transform: translateX(0); }
+            10% { transform: translateX(-1px); }
+            20% { transform: translateX(1px); }
+            30% { transform: translateX(-1px); }
+            40% { transform: translateX(1px); }
+            50% { transform: translateX(-2px); }
+            60% { transform: translateX(2px); }
+            70% { transform: translateX(-1px); }
+            80% { transform: translateX(1px); }
+            90% { transform: translateX(0); }
+        }
+
+        /* VHS tear effect */
+        .spin-button::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: var(--neon-green);
+            opacity: 0;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .spin-button:hover::after {
+            opacity: 0.5;
+            animation: vhs-tear 2s infinite;
+        }
+
+        @keyframes vhs-tear {
+            0%, 90%, 100% { 
+                opacity: 0;
+                transform: translateY(-50%) scaleY(1);
+            }
+            93% { 
+                opacity: 0.5;
+                transform: translateY(-50%) scaleY(1);
+            }
+            95% { 
+                opacity: 0.8;
+                transform: translateY(-50%) scaleY(3);
+            }
+            97% { 
+                opacity: 0.5;
+                transform: translateY(calc(-50% + 20px)) scaleY(1);
+            }
+        }
+
+        .machine-instructions {
+            margin-top: 30px;
+            color: #aaa;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .episode-result {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--neon-green);
+            padding: 40px;
+            margin-top: 40px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .episode-result h3 {
+            color: var(--neon-green);
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            animation: flicker 2s infinite;
+        }
+
+        .result-number {
+            font-size: 48px;
+            color: var(--vhs-purple);
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px var(--vhs-purple);
+        }
+
+        .result-instruction {
+            color: #ccc;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .result-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         /* Performance Mode Toggle */
@@ -937,8 +1158,7 @@
     <nav>
         <div class="container">
             <a href="#" class="logo">
-                <img src="https://via.placeholder.com/200x60/39FF14/000000?text=CHILLUMINATI" alt="Chilluminati Logo">
-                <span class="logo-text">CHILLUMINATI</span>
+                <img src="./images/logo.png" alt="Chilluminati Logo">
             </a>
             <ul class="nav-links">
                 <li><a href="#latest">LATEST.EXE</a></li>
@@ -1041,97 +1261,66 @@
         </div>
     </section>
 
-    <!-- Recent Episodes with Search -->
+    <!-- Random Episode Generator -->
     <section id="episodes" class="episodes">
         <div class="container">
-            <h2 class="section-title">TRANSMISSION ARCHIVE</h2>
-            <div class="terminal-header">LOADING ARCHIVE DATABASE...</div>
+            <h2 class="section-title">EPISODE ROULETTE</h2>
+            <div class="terminal-header">302+ TRANSMISSIONS IN THE ARCHIVE...</div>
             
-            <!-- Episode Search -->
-            <div class="episode-search">
-                <div class="search-container">
-                    <input type="text" class="search-input" id="episodeSearch" placeholder="SEARCH TRANSMISSIONS...">
-                    <button class="vhs-button" onclick="searchEpisodes()">SCAN</button>
-                </div>
-                <div class="filter-tags">
-                    <button class="tag-filter" data-tag="aliens" onclick="toggleTag(this)">ALIENS</button>
-                    <button class="tag-filter" data-tag="ghosts" onclick="toggleTag(this)">GHOSTS</button>
-                    <button class="tag-filter" data-tag="cryptids" onclick="toggleTag(this)">CRYPTIDS</button>
-                    <button class="tag-filter" data-tag="conspiracy" onclick="toggleTag(this)">CONSPIRACY</button>
-                    <button class="tag-filter" data-tag="truecrime" onclick="toggleTag(this)">TRUE CRIME</button>
-                    <button class="tag-filter" data-tag="folklore" onclick="toggleTag(this)">FOLKLORE</button>
-                </div>
-            </div>
-
-            <div class="episodes-grid" id="episodesGrid">
-                <div class="episode-item" data-tags="aliens conspiracy">
-                    <h3>EP. 302: [LATEST EPISODE]</h3>
-                    <p>Check the player above for our newest investigation into the unknown. New episodes every Saturday!</p>
-                    <div class="episode-tags">
-                        <span class="episode-tag">NEW</span>
-                        <span class="episode-tag">ALIENS</span>
+            <!-- Random Episode Machine -->
+            <div class="episode-machine">
+                <div class="machine-display">
+                    <div class="machine-screen" id="machineScreen">
+                        <div class="slot-number" id="slotNumber">???</div>
+                        <div class="slot-title" id="slotTitle">PRESS BUTTON TO INITIATE</div>
+                    </div>
+                    <div class="machine-lights">
+                        <span class="light"></span>
+                        <span class="light"></span>
+                        <span class="light"></span>
                     </div>
                 </div>
-                <div class="episode-item" data-tags="folklore">
-                    <h3>EP. 301: Folk Magic Series</h3>
-                    <p>Alex takes us deep into Appalachian Mountain magic, tarot readings, and the weird world of American folk traditions.</p>
-                    <div class="episode-tags">
-                        <span class="episode-tag">FOLKLORE</span>
-                        <span class="episode-tag">MAGIC</span>
+                
+                <div class="machine-controls">
+                    <div class="dos-header">C:\CHILLUMINATI\EPISODES></div>
+                    <button class="spin-button" onclick="spinForEpisode()">
+                        <span class="button-text">[ EXECUTE RANDOM.EXE ]</span>
+                    </button>
+                    
+                    <div class="machine-instructions">
+                        <p>Can't decide what to listen to? Let the universe choose!</p>
+                        <p>Execute the randomizer and discover an episode from our 302+ archive.</p>
                     </div>
                 </div>
-                <div class="episode-item" data-tags="truecrime">
-                    <h3>EP. 300: The Iceman Returns</h3>
-                    <p>Our milestone episode! Mike brings us back to our true crime roots with a chilling sequel story.</p>
-                    <div class="episode-tags">
-                        <span class="episode-tag">TRUE CRIME</span>
-                        <span class="episode-tag">MILESTONE</span>
-                    </div>
-                </div>
-                <div class="episode-item" data-tags="conspiracy aliens">
-                    <h3>EP. 299: Heaven's Gate Finale</h3>
-                    <p>The conclusion of our UFO cult deep dive. Remember kids, always think twice before major decisions!</p>
-                    <div class="episode-tags">
-                        <span class="episode-tag">CONSPIRACY</span>
-                        <span class="episode-tag">ALIENS</span>
-                    </div>
-                </div>
-                <div class="episode-item" data-tags="aliens">
-                    <h3>EP. 298: Rendlesham Forest</h3>
-                    <p>Britain's most credible UFO encounter. Military witnesses, physical evidence, and government cover-ups.</p>
-                    <div class="episode-tags">
-                        <span class="episode-tag">ALIENS</span>
-                        <span class="episode-tag">MILITARY</span>
-                    </div>
-                </div>
-                <div class="episode-item" data-tags="ghosts">
-                    <h3>EP. 297: Haunted Video Games</h3>
-                    <p>Pat Contri returns to explore cursed cartridges, digital ghosts, and the weirdest gaming urban legends.</p>
-                    <div class="episode-tags">
-                        <span class="episode-tag">GHOSTS</span>
-                        <span class="episode-tag">GAMING</span>
-                    </div>
-                </div>
-                <div class="episode-item" data-tags="cryptids">
-                    <h3>EP. 296: Bigfoot Update 2024</h3>
-                    <p>New sightings, fresh evidence, and the latest in Sasquatch science. Is this the year we finally find him?</p>
-                    <div class="episode-tags">
-                        <span class="episode-tag">CRYPTIDS</span>
-                        <span class="episode-tag">BIGFOOT</span>
-                    </div>
-                </div>
-                <div class="episode-item" data-tags="ghosts folklore">
-                    <h3>EP. 295: The Bell Witch</h3>
-                    <p>America's most famous haunting. A witch's curse, a family tormented, and a president who investigated it himself.</p>
-                    <div class="episode-tags">
-                        <span class="episode-tag">GHOSTS</span>
-                        <span class="episode-tag">FOLKLORE</span>
+                
+                <!-- Episode Result (Hidden by default) -->
+                <div class="episode-result" id="episodeResult" style="display: none;">
+                    <h3>YOUR FATE HAS BEEN DECIDED!</h3>
+                    <div class="result-content">
+                        <div class="result-number" id="resultNumber">Episode #???</div>
+                        <div class="result-instruction">
+                            Head to Spotify and search for this episode number!
+                        </div>
+                        <div class="result-buttons">
+                            <a href="https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP?si=887d9ae4368f4efd" 
+                               class="vhs-button" target="_blank">
+                                GO TO SPOTIFY
+                            </a>
+                            <button class="vhs-button" onclick="spinForEpisode()">
+                                SPIN AGAIN
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div style="text-align: center; margin-top: 40px;">
-                <a href="https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP?si=887d9ae4368f4efd" class="vhs-button">ACCESS FULL ARCHIVE (302+ EPISODES)</a>
+            <!-- Browse All Link -->
+            <div style="text-align: center; margin-top: 60px;">
+                <div class="terminal-header">OR BROWSE MANUALLY:</div>
+                <a href="https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP?si=887d9ae4368f4efd" 
+                   class="vhs-button" target="_blank">
+                    ACCESS FULL ARCHIVE ON SPOTIFY
+                </a>
             </div>
         </div>
     </section>
@@ -1313,6 +1502,38 @@
         setInterval(updateCountdown, 1000);
         updateCountdown();
 
+        // Subtle text glitch effect
+        let glitchInterval;
+        const spinButton = document.querySelector('.spin-button');
+        const buttonTextElement = document.querySelector('.spin-button .button-text');
+        const originalText = '[ EXECUTE RANDOM.EXE ]';
+        
+        if (spinButton && buttonTextElement) {
+            spinButton.addEventListener('mouseenter', () => {
+                glitchInterval = setInterval(() => {
+                    if (Math.random() < 0.3) {
+                        const glitchText = originalText.split('').map(char => {
+                            if (char !== ' ' && char !== '[' && char !== ']' && Math.random() < 0.1) {
+                                return String.fromCharCode(char.charCodeAt(0) + Math.floor(Math.random() * 5) - 2);
+                            }
+                            return char;
+                        }).join('');
+                        
+                        buttonTextElement.textContent = glitchText;
+                        
+                        setTimeout(() => {
+                            buttonTextElement.textContent = originalText;
+                        }, 50);
+                    }
+                }, 100);
+            });
+            
+            spinButton.addEventListener('mouseleave', () => {
+                clearInterval(glitchInterval);
+                buttonTextElement.textContent = originalText;
+            });
+        }
+
         // Performance Mode Toggle
         function togglePerformanceMode() {
             const body = document.body;
@@ -1340,54 +1561,65 @@
             }, 3000);
         }
 
-        // Episode Search and Filtering
-        let activeFilters = [];
-
-        function toggleTag(element) {
-            const tag = element.getAttribute('data-tag');
+        // Random Episode Spinner
+        let isSpinning = false;
+        
+        function spinForEpisode() {
+            if (isSpinning) return;
             
-            if (element.classList.contains('active')) {
-                element.classList.remove('active');
-                activeFilters = activeFilters.filter(f => f !== tag);
-            } else {
-                element.classList.add('active');
-                activeFilters.push(tag);
-            }
+            isSpinning = true;
+            const slotNumber = document.getElementById('slotNumber');
+            const slotTitle = document.getElementById('slotTitle');
+            const lights = document.querySelectorAll('.light');
+            const episodeResult = document.getElementById('episodeResult');
             
-            filterEpisodes();
-        }
-
-        function searchEpisodes() {
-            const searchTerm = document.getElementById('episodeSearch').value.toLowerCase();
-            const episodes = document.querySelectorAll('.episode-item');
+            // Hide previous result
+            episodeResult.style.display = 'none';
             
-            episodes.forEach(episode => {
-                const title = episode.querySelector('h3').textContent.toLowerCase();
-                const description = episode.querySelector('p').textContent.toLowerCase();
+            // Start spinning animation
+            slotNumber.classList.add('spinning');
+            slotTitle.textContent = 'RANDOMIZING...';
+            
+            // Animate lights
+            lights.forEach((light, index) => {
+                setTimeout(() => {
+                    light.classList.add('active');
+                }, index * 200);
+            });
+            
+            // Spin through random numbers
+            let spinCount = 0;
+            const spinInterval = setInterval(() => {
+                slotNumber.textContent = Math.floor(Math.random() * 302) + 1;
+                spinCount++;
                 
-                if (title.includes(searchTerm) || description.includes(searchTerm)) {
-                    episode.style.display = 'block';
-                } else {
-                    episode.style.display = 'none';
-                }
-            });
-            
-            showTerminalMessage(`SEARCH COMPLETE: ${searchTerm.toUpperCase()}`);
-        }
-
-        function filterEpisodes() {
-            const episodes = document.querySelectorAll('.episode-item');
-            
-            episodes.forEach(episode => {
-                if (activeFilters.length === 0) {
-                    episode.style.display = 'block';
-                } else {
-                    const episodeTags = episode.getAttribute('data-tags').split(' ');
-                    const hasActiveTag = activeFilters.some(filter => episodeTags.includes(filter));
+                if (spinCount > 20) {
+                    clearInterval(spinInterval);
                     
-                    episode.style.display = hasActiveTag ? 'block' : 'none';
+                    // Final episode number (1-302)
+                    const finalEpisode = Math.floor(Math.random() * 302) + 1;
+                    
+                    // Stop spinning
+                    slotNumber.classList.remove('spinning');
+                    slotNumber.textContent = finalEpisode;
+                    slotTitle.textContent = 'EPISODE SELECTED!';
+                    
+                    // Show result
+                    setTimeout(() => {
+                        document.getElementById('resultNumber').textContent = `Episode #${finalEpisode}`;
+                        episodeResult.style.display = 'block';
+                        episodeResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Reset lights
+                        lights.forEach(light => light.classList.remove('active'));
+                        
+                        // Show terminal message
+                        showTerminalMessage(`EPISODE ${finalEpisode} SELECTED - CHECK SPOTIFY!`);
+                        
+                        isSpinning = false;
+                    }, 500);
                 }
-            });
+            }, 100);
         }
 
         // Host Secrets
@@ -1458,13 +1690,6 @@
                     document.getElementById('secretMessage').textContent = 'You\'ve discovered the hidden frequency! Tune in at midnight for secret transmissions...';
                     document.getElementById('secretCode').classList.add('active');
                 }, 1000);
-            }
-        });
-
-        // Episode search on Enter key
-        document.getElementById('episodeSearch').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchEpisodes();
             }
         });
     </script>
