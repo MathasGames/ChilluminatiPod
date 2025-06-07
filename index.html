@@ -1457,7 +1457,7 @@
                 <span id="countdownText">CALCULATING NEXT TRANSMISSION...</span>
             </div>
             <div style="text-align: center; margin-top: 40px;">
-                <a href="https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP?si=887d9ae4368f4efd" class="vhs-button">VIEW ALL 302+ EPISODES</a>
+                <a href="https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP?si=887d9ae4368f4efd" class="vhs-button" id="heroEpisodeButton">VIEW ALL 302+ EPISODES</a>
             </div>
         </div>
     </section>
@@ -1468,7 +1468,7 @@
             <h2 class="section-title">LATEST TRANSMISSION</h2>
             <div class="terminal-header">ACCESSING FILE: EP302_LATEST.MP3</div>
             <div class="episode-card">
-                <div class="episode-number">EPISODE 302+</div>
+                <div class="episode-number" id="latestEpisodeNumber">EPISODE 302+</div>
                 <h3 class="episode-title">Latest Episode</h3>
                 <p class="episode-description">
                     New episodes drop every Saturday! Join Mike, Jesse, and Alex as they explore the weird, 
@@ -1566,7 +1566,7 @@
                     
                     <div class="machine-instructions">
                         <p>Can't decide what to listen to? Let the universe choose!</p>
-                        <p>Execute the randomizer and discover an episode from our 302+ archive.</p>
+                        <p id="machineArchiveText">Execute the randomizer and discover an episode from our 302+ archive.</p>
                     </div>
                 </div>
                 
@@ -1685,7 +1685,7 @@
 
     <script>
         // Global episode count variable
-        let TOTAL_EPISODES = 302; // Default fallback value
+        let TOTAL_EPISODES = 302; // Default fallback value - update this if RSS fetch fails
         
         /* AUTOMATIC EPISODE COUNTER
          * This code automatically counts your episodes from your RSS feed
@@ -1781,33 +1781,56 @@
             // If all proxies failed
             console.log('All proxy services failed. Using default count of', TOTAL_EPISODES);
             console.log('This is usually due to CORS restrictions. The episode count will remain at the default value.');
+            
+            // Still update references even with default count for consistency
+            updateEpisodeReferences();
         }
         
         // Function to update all episode count references in the page
         function updateEpisodeReferences() {
-            // Update hero button
-            const heroButton = document.querySelector('.hero-content a[href*="spotify"][class="vhs-button"]');
-            if (heroButton && heroButton.textContent.includes('EPISODES')) {
+            console.log(`Updating all references to ${TOTAL_EPISODES} episodes...`);
+            
+            // Update hero button by ID
+            const heroButton = document.getElementById('heroEpisodeButton');
+            if (heroButton) {
                 heroButton.textContent = `VIEW ALL ${TOTAL_EPISODES}+ EPISODES`;
             }
             
-            // Update archive text in episodes section
+            // Update archive text by ID
             const archiveCount = document.getElementById('archiveCount');
             if (archiveCount) {
                 archiveCount.textContent = `${TOTAL_EPISODES}+ TRANSMISSIONS IN THE ARCHIVE...`;
             }
             
-            // Update episode card
-            const episodeNumber = document.querySelector('.episode-number');
+            // Update episode card by ID
+            const episodeNumber = document.getElementById('latestEpisodeNumber');
             if (episodeNumber) {
                 episodeNumber.textContent = `EPISODE ${TOTAL_EPISODES}+`;
             }
             
-            // Update machine instructions
-            const machineInstructions = document.querySelector('.machine-instructions p:last-child');
-            if (machineInstructions && machineInstructions.textContent.includes('archive')) {
-                machineInstructions.textContent = `Execute the randomizer and discover an episode from our ${TOTAL_EPISODES}+ archive.`;
+            // Update machine instructions by ID
+            const machineArchiveText = document.getElementById('machineArchiveText');
+            if (machineArchiveText) {
+                machineArchiveText.textContent = `Execute the randomizer and discover an episode from our ${TOTAL_EPISODES}+ archive.`;
             }
+            
+            // Update any other text that contains "302+" pattern
+            const allTextNodes = document.evaluate(
+                "//text()[contains(., '302+')]",
+                document,
+                null,
+                XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
+                null
+            );
+            
+            for (let i = 0; i < allTextNodes.snapshotLength; i++) {
+                const textNode = allTextNodes.snapshotItem(i);
+                if (textNode.nodeValue) {
+                    textNode.nodeValue = textNode.nodeValue.replace(/302\+/g, `${TOTAL_EPISODES}+`);
+                }
+            }
+            
+            console.log('Episode references updated!');
         }
         
         // Debug function to show episode count status on page
@@ -1825,6 +1848,9 @@
         
         // Call this when page loads
         updateEpisodeCount();
+        
+        // Also update references immediately with default count for consistency
+        updateEpisodeReferences();
         
         // Debug mode - uncomment the next line to show episode count status on page
         // showEpisodeDebug();
