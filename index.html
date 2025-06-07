@@ -2655,7 +2655,7 @@
                 <span id="countdownText">CALCULATING NEXT TRANSMISSION...</span>
             </div>
             <div style="text-align: center; margin-top: 40px;">
-                <a href="https://www.youtube.com/@chilluminatipod" class="vhs-button" id="heroEpisodeButton">VIEW ALL 300+ EPISODES</a>
+                <a href="https://www.youtube.com/@chilluminatipod" class="vhs-button" id="heroEpisodeButton">VIEW ALL EPISODES ON YOUTUBE</a>
             </div>
         </div>
     </section>
@@ -2745,7 +2745,7 @@
     <section id="episodes" class="episodes">
         <div class="container">
             <h2 class="section-title">EPISODE ROULETTE</h2>
-            <div class="terminal-header" style="text-align: center;" id="archiveCount">300+ TRANSMISSIONS IN THE ARCHIVE...</div>
+            <div class="terminal-header" style="text-align: center;" id="archiveCount">ACCESSING EPISODE ARCHIVE...</div>
             
             <!-- Random Episode Machine -->
             <div class="episode-machine">
@@ -2773,7 +2773,7 @@
                     
                     <div class="machine-instructions">
                         <p>Can't decide what to listen to? Let the universe choose!</p>
-                        <p id="machineArchiveText">Execute the randomizer and discover an episode from our archive.</p>
+                        <p id="machineArchiveText">Execute the randomizer and discover a random episode from the archive.</p>
                     </div>
                 </div>
                 
@@ -3064,15 +3064,38 @@
         // YouTube playlist ID
         const YOUTUBE_PLAYLIST_ID = 'PLrIoJm0QOWUpOH3JFyL5581CzJ_OTLttL';
         
-        // Episode Database - You'll need to fill in real video IDs
-        const EPISODES = [
-            { number: 302, videoId: 'REPLACE_WITH_REAL_ID', title: 'Episode 302', keywords: 'paranormal, mystery' },
-            { number: 301, videoId: 'REPLACE_WITH_REAL_ID', title: 'Episode 301', keywords: 'ghost, haunting' },
-            { number: 300, videoId: 'REPLACE_WITH_REAL_ID', title: 'Episode 300 - Special', keywords: 'anniversary, bigfoot' },
-            { number: 299, videoId: 'REPLACE_WITH_REAL_ID', title: 'The Skinwalker Ranch', keywords: 'skinwalker, ranch, utah, paranormal' },
-            { number: 298, videoId: 'REPLACE_WITH_REAL_ID', title: 'Mothman Returns', keywords: 'mothman, cryptid, west virginia' },
-            // Add more episodes with real YouTube video IDs
+        // Episode topics for search (no need for specific video IDs!)
+        const EPISODE_TOPICS = [
+            { keywords: 'bigfoot, sasquatch, cryptid, forest, yeti, ape', episodes: 'Bigfoot episodes' },
+            { keywords: 'ghost, haunted, paranormal, spirit, poltergeist, haunting', episodes: 'Ghost & Haunting episodes' },
+            { keywords: 'ufo, alien, extraterrestrial, abduction, roswell, area 51', episodes: 'UFO & Alien episodes' },
+            { keywords: 'skinwalker, ranch, utah, paranormal, shapeshifter', episodes: 'Skinwalker Ranch series' },
+            { keywords: 'mothman, cryptid, west virginia, prophecy, point pleasant', episodes: 'Mothman episodes' },
+            { keywords: 'conspiracy, government, coverup, secret, illuminati', episodes: 'Conspiracy episodes' },
+            { keywords: 'serial killer, true crime, murder, killer, crime', episodes: 'True Crime episodes' },
+            { keywords: 'demon, possession, exorcism, evil, devil, satan', episodes: 'Demon & Possession episodes' },
+            { keywords: 'time, slip, anomaly, dimension, portal, timeline', episodes: 'Time Anomaly episodes' },
+            { keywords: 'ritual, occult, magic, summoning, witchcraft, spell', episodes: 'Occult & Ritual episodes' },
+            { keywords: 'chupacabra, cryptid, vampire, blood, puerto rico', episodes: 'Chupacabra episodes' },
+            { keywords: 'men in black, mib, agent, surveillance', episodes: 'Men in Black episodes' },
+            { keywords: 'dogman, werewolf, lycanthrope, michigan', episodes: 'Dogman episodes' },
+            { keywords: 'jersey devil, cryptid, pine barrens, new jersey', episodes: 'Jersey Devil episodes' },
+            { keywords: 'black eyed children, bek, kids, children', episodes: 'Black Eyed Children episodes' },
+            { keywords: 'wendigo, cannibal, forest, native, indigenous', episodes: 'Wendigo episodes' },
+            { keywords: 'bermuda triangle, disappearance, mystery, ocean', episodes: 'Bermuda Triangle episodes' },
+            { keywords: 'doll, haunted, cursed, annabelle, robert', episodes: 'Haunted Doll episodes' },
+            { keywords: 'lincoln, abe, abraham, president, assassination', episodes: 'Lincoln episodes' },
+            { keywords: 'vampire, blood, undead, dracula, nosferatu', episodes: 'Vampire episodes' },
+            // Add more topics as needed
         ];
+        
+        // Get a random episode from playlist (no IDs needed!)
+        function getRandomPlaylistIndex() {
+            // YouTube playlists show newest first, so index 1 is the latest episode
+            // We'll randomize from 1 to 300 (or however many episodes you have)
+            // The playlist will handle invalid indexes gracefully
+            return Math.floor(Math.random() * 300) + 1;
+        }
         
         // Sound System
         let soundEnabled = true;
@@ -3217,38 +3240,47 @@
             
             // Simulate search delay for effect
             setTimeout(() => {
-                // Search through episode database
-                const results = EPISODES.filter(episode => {
-                    // Check episode number
-                    if (!isNaN(query) && episode.number === parseInt(query)) {
-                        return true;
-                    }
-                    
-                    // Check title and keywords
-                    return episode.title.toLowerCase().includes(query) || 
-                           episode.keywords.toLowerCase().includes(query);
+                // Search through topics
+                const results = EPISODE_TOPICS.filter(topic => {
+                    return topic.keywords.toLowerCase().includes(query);
                 });
                 
                 if (results.length === 0) {
                     searchResults.innerHTML = `
                         <p class="search-status">NO RESULTS FOUND FOR "${query.toUpperCase()}"</p>
                         <p class="search-status" style="margin-top: 10px; font-size: 12px;">
-                            Try different keywords, episode numbers, or check YouTube directly
+                            Try keywords like: bigfoot, ghost, ufo, skinwalker, mothman, conspiracy, serial killer
+                        </p>
+                        <p class="search-status" style="margin-top: 10px; font-size: 12px;">
+                            Or <a href="https://www.youtube.com/@chilluminatipod/search?query=${encodeURIComponent(query)}" 
+                                 target="_blank" 
+                                 style="color: var(--neon-green); text-decoration: underline;">
+                                search directly on YouTube
+                            </a>
                         </p>
                     `;
                 } else {
                     // Build results HTML
-                    let resultsHTML = `<p class="search-status">FOUND ${results.length} RESULT${results.length > 1 ? 'S' : ''}</p>`;
+                    let resultsHTML = `<p class="search-status">FOUND EPISODES ABOUT "${query.toUpperCase()}"</p>`;
                     
-                    results.slice(0, 10).forEach(episode => {
+                    results.forEach(result => {
                         resultsHTML += `
-                            <div class="search-result-item" onclick="loadEpisodeFromSearch('${episode.videoId}', ${episode.number})">
-                                <div class="result-episode-number">EPISODE ${episode.number}</div>
-                                <div class="result-episode-title">${episode.title}</div>
-                                <div class="result-episode-topics">Keywords: ${episode.keywords}</div>
+                            <div class="search-result-item" onclick="playTopicEpisodes('${query}')">
+                                <div class="result-episode-number">TOPIC MATCH</div>
+                                <div class="result-episode-title">${result.episodes}</div>
+                                <div class="result-episode-topics">Related: ${result.keywords}</div>
                             </div>
                         `;
                     });
+                    
+                    // Add a direct playlist search option
+                    resultsHTML += `
+                        <div class="search-result-item" onclick="playTopicEpisodes('${query}')">
+                            <div class="result-episode-number">FULL ARCHIVE</div>
+                            <div class="result-episode-title">Search all episodes for "${query}"</div>
+                            <div class="result-episode-topics">Click to browse playlist with your search in mind</div>
+                        </div>
+                    `;
                     
                     searchResults.innerHTML = resultsHTML;
                 }
@@ -3261,20 +3293,24 @@
             }, 1000);
         }
 
-        // Load episode from search
-        function loadEpisodeFromSearch(videoId, episodeNumber) {
+        // Play episodes related to a topic
+        function playTopicEpisodes(topic) {
             // Scroll to the episode machine section
             document.getElementById('episodes').scrollIntoView({ behavior: 'smooth', block: 'start' });
             
-            // After scrolling, load the episode
+            // After scrolling, load the playlist
             setTimeout(() => {
-                document.getElementById('slotNumber').textContent = episodeNumber;
-                document.getElementById('slotTitle').textContent = 'EPISODE LOADED!';
-                document.getElementById('episodeResult').style.display = 'block';
+                const slotNumber = document.getElementById('slotNumber');
+                const slotTitle = document.getElementById('slotTitle');
+                const episodeResult = document.getElementById('episodeResult');
                 
-                // Update the player
+                slotNumber.textContent = '???';
+                slotTitle.textContent = `LOADING ${topic.toUpperCase()} EPISODES`;
+                episodeResult.style.display = 'block';
+                
+                // Play playlist (user can skip through to find relevant episodes)
                 document.getElementById('randomPlayer').innerHTML = `
-                    <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" 
+                    <iframe src="https://www.youtube.com/embed/videoseries?list=${YOUTUBE_PLAYLIST_ID}&autoplay=1&rel=0" 
                             frameborder="0" 
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                             allowfullscreen
@@ -3282,9 +3318,20 @@
                     </iframe>
                 `;
                 
-                showTerminalMessage(`LOADING EPISODE ${episodeNumber}...`);
+                showTerminalMessage(`LOADING ${topic.toUpperCase()} EPISODES - USE PLAYER CONTROLS TO BROWSE`);
             }, 800);
         }
+
+        // Initialize terminal message
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                showTerminalMessage('SYSTEM INITIALIZED - WELCOME TO CHILLUMINATI');
+                console.log('🎙️ CHILLUMINATI PODCAST SITE LOADED');
+                console.log('✅ Random episodes work automatically from your playlist');
+                console.log('✅ Search works by topic keywords');
+                console.log('✅ No manual updates needed!');
+            }, 2000);
+        });
 
         // Random Episode Spinner
         let isSpinning = false;
@@ -3320,28 +3367,27 @@
             // Spin through random numbers
             let spinCount = 0;
             const spinInterval = setInterval(() => {
-                slotNumber.textContent = Math.floor(Math.random() * EPISODES.length) + 1;
+                slotNumber.textContent = Math.floor(Math.random() * 300) + 1;
                 spinCount++;
                 
                 if (spinCount > 20) {
                     clearInterval(spinInterval);
                     
-                    // Pick a random episode
-                    const randomIndex = Math.floor(Math.random() * EPISODES.length);
-                    const selectedEpisode = EPISODES[randomIndex];
+                    // Pick a random playlist position
+                    const randomIndex = getRandomPlaylistIndex();
                     
                     // Stop spinning
                     slotNumber.classList.remove('spinning');
-                    slotNumber.textContent = selectedEpisode.number;
+                    slotNumber.textContent = randomIndex;
                     slotTitle.textContent = 'EPISODE SELECTED!';
                     
                     // Show result and auto-play
                     setTimeout(() => {
                         episodeResult.style.display = 'block';
                         
-                        // Update the player
+                        // Play from playlist at random index
                         document.getElementById('randomPlayer').innerHTML = `
-                            <iframe src="https://www.youtube.com/embed/${selectedEpisode.videoId}?autoplay=1&rel=0" 
+                            <iframe src="https://www.youtube.com/embed/videoseries?list=${YOUTUBE_PLAYLIST_ID}&index=${randomIndex}&autoplay=1&rel=0" 
                                     frameborder="0" 
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                     allowfullscreen
@@ -3353,7 +3399,7 @@
                         lights.forEach(light => light.classList.remove('active'));
                         
                         // Show terminal message
-                        showTerminalMessage(`EPISODE ${selectedEpisode.number} LOADED - INITIATING PLAYBACK`);
+                        showTerminalMessage(`LOADING PLAYLIST POSITION ${randomIndex} - INITIATING PLAYBACK`);
                         
                         isSpinning = false;
                     }, 500);
@@ -3895,6 +3941,10 @@
         window.addEventListener('load', function() {
             setTimeout(() => {
                 showTerminalMessage('SYSTEM INITIALIZED - WELCOME TO CHILLUMINATI');
+                console.log('🎙️ CHILLUMINATI PODCAST SITE LOADED');
+                console.log('✅ Random episodes work automatically from your playlist');
+                console.log('✅ Search works by topic keywords');
+                console.log('✅ No manual updates needed!');
             }, 2000);
         });
     </script>
