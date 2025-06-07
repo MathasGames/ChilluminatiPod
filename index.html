@@ -1848,6 +1848,17 @@
             flex-wrap: wrap;
         }
 
+        /* Audio player styling */
+        .episode-result audio {
+            width: 100%;
+            height: 54px;
+            outline: none;
+        }
+
+        .episode-result audio::-webkit-media-controls-panel {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
         /* Live Sighting Tracker */
         .sighting-tracker {
             position: fixed;
@@ -2753,11 +2764,11 @@
                 
                 <!-- Episode Result (Hidden by default) -->
                 <div class="episode-result" id="episodeResult" style="display: none;">
-                    <h3>YOUR FATE HAS BEEN DECIDED!</h3>
+                    <h3>EPISODE LOADED</h3>
                     <div class="result-content">
                         <div class="result-number" id="resultNumber">Episode #???</div>
                         <div class="result-instruction">
-                            Loading episode player...
+                            Loading episode data...
                         </div>
                         <div class="result-buttons">
                             <button class="vhs-button" onclick="spinForEpisode()">
@@ -3227,7 +3238,30 @@
                     
                     // Extract audio URL from enclosure tag
                     const enclosure = item.querySelector('enclosure');
-                    const audioUrl = enclosure?.getAttribute('url') || '';
+                    let audioUrl = enclosure?.getAttribute('url') || '';
+                    
+                    // If no enclosure, try other common audio tags
+                    if (!audioUrl) {
+                        // Try media:content
+                        const mediaContent = item.querySelector('content');
+                        audioUrl = mediaContent?.getAttribute('url') || '';
+                    }
+                    
+                    // Try guid if it's an audio URL
+                    if (!audioUrl) {
+                        const guid = item.querySelector('guid')?.textContent || '';
+                        if (guid.includes('.mp3') || guid.includes('audioboom.com/posts')) {
+                            audioUrl = guid;
+                        }
+                    }
+                    
+                    // Also try to get iTunes duration if available
+                    const duration = item.querySelector('duration')?.textContent || '';
+                    
+                    // Log audio URL for debugging
+                    if (i < 3) { // Log first 3 episodes
+                        console.log(`Episode ${items.length - i}: Audio URL = ${audioUrl}`);
+                    }
                     
                     // Clean up description (remove HTML)
                     const cleanDescription = description
@@ -3297,7 +3331,19 @@
                 EPISODE_DATABASE.sort((a, b) => (b.number || 0) - (a.number || 0));
                 
                 console.log(`✓ Episode database populated with ${EPISODE_DATABASE.length} episodes`);
-                console.log('Sample episode with audio:', EPISODE_DATABASE[0]);
+                
+                // Check how many episodes have audio URLs
+                const episodesWithAudio = EPISODE_DATABASE.filter(ep => ep.audioUrl).length;
+                console.log(`Episodes with audio URLs: ${episodesWithAudio} out of ${EPISODE_DATABASE.length}`);
+                
+                if (EPISODE_DATABASE.length > 0) {
+                    console.log('Sample episode:', {
+                        number: EPISODE_DATABASE[0].number,
+                        title: EPISODE_DATABASE[0].title,
+                        hasAudio: !!EPISODE_DATABASE[0].audioUrl,
+                        audioUrl: EPISODE_DATABASE[0].audioUrl
+                    });
+                }
                 
                 // Update total episodes count
                 TOTAL_EPISODES = EPISODE_DATABASE.length;
@@ -3333,6 +3379,36 @@
             }
         }
 
+        // Load episode from search results - scrolls to machine and loads it there
+        function loadEpisodeFromSearch(episodeNumber) {
+            // Scroll to the episode machine section
+            const episodesSection = document.getElementById('episodes');
+            if (episodesSection) {
+                episodesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            
+            // After scrolling, load the episode
+            setTimeout(() => {
+                // Update the machine display
+                const slotNumber = document.getElementById('slotNumber');
+                const slotTitle = document.getElementById('slotTitle');
+                const episodeResult = document.getElementById('episodeResult');
+                
+                if (slotNumber && slotTitle) {
+                    slotNumber.textContent = episodeNumber;
+                    slotTitle.textContent = 'EPISODE LOADED!';
+                }
+                
+                // Make sure result area is visible
+                if (episodeResult) {
+                    episodeResult.style.display = 'block';
+                }
+                
+                // Load the episode
+                loadEpisode(episodeNumber);
+            }, 800);
+        }
+        
         // Update the loadEpisode function
         function loadEpisode(episodeNumber) {
             const episode = EPISODE_DATABASE.find(ep => ep.number === episodeNumber);
@@ -3342,14 +3418,16 @@
                 const fallbackEpisode = {
                     number: episodeNumber,
                     title: `Episode ${episodeNumber}`,
-                    description: 'Search for this episode on Spotify.',
+                    description: 'Episode details not available in database.',
                     audioUrl: '',
+                    link: '',
                     spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + episodeNumber)}`
                 };
                 showEpisodeModal(fallbackEpisode);
                 return;
             }
             
+            console.log(`Loading Episode ${episode.number}:`, episode.audioUrl ? 'Has audio' : 'No audio');
             showEpisodeModal(episode);
         }
 
@@ -3358,64 +3436,91 @@
             // Show loading message
             showTerminalMessage(`LOADING EPISODE ${episode.number}...`);
             
-            // Create modal
-            const modal = document.createElement('div');
-            modal.className = 'episode-modal';
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.95);
-                z-index: 10000;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                animation: fadeIn 0.3s ease-in;
-                padding: 20px;
-            `;
-            
-            // Create audio player if audio URL exists
-            let audioPlayerHTML = '';
+            // If we have an audio URL, create an embedded player instead of just links
             if (episode.audioUrl) {
-                audioPlayerHTML = `
-                    <div style="background: #000; border: 2px solid var(--neon-green); padding: 20px; margin-bottom: 20px;">
+                // Update the episode result div instead of creating a modal
+                const episodeResult = document.getElementById('episodeResult');
+                const resultContent = episodeResult.querySelector('.result-content');
+                
+                resultContent.innerHTML = `
+                    <div class="result-number">Episode #${episode.number}</div>
+                    <h3 style="color: #fff; margin: 20px 0; font-size: 24px;">${episode.title}</h3>
+                    <p style="color: #ccc; margin-bottom: 20px; line-height: 1.6;">${episode.description}</p>
+                    
+                    <div style="background: #000; border: 2px solid var(--neon-green); padding: 20px; margin: 20px 0;">
                         <div style="color: var(--neon-green); font-size: 12px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">
-                            ▶ Direct Audio Feed
+                            ▶ STREAMING FROM RSS FEED
                         </div>
-                        <audio controls style="width: 100%; filter: sepia(1) saturate(2) hue-rotate(90deg);">
+                        <audio controls style="width: 100%; filter: sepia(1) saturate(2) hue-rotate(90deg);" autoplay>
                             <source src="${episode.audioUrl}" type="audio/mpeg">
                             Your browser does not support the audio element.
                         </audio>
                     </div>
-                `;
-            }
-            
-            modal.innerHTML = `
-                <div style="background: #000; border: 3px solid var(--neon-green); padding: 30px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative;">
-                    <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 10px; right: 10px; background: transparent; border: 1px solid var(--vhs-red); color: var(--vhs-red); padding: 5px 15px; cursor: pointer; font-family: 'Courier New', monospace;">[ CLOSE ]</button>
                     
-                    <h2 style="color: var(--neon-green); margin-bottom: 20px; font-size: 24px;">EPISODE ${episode.number}</h2>
-                    <h3 style="color: #fff; margin-bottom: 20px;">${episode.title}</h3>
-                    <p style="color: #ccc; margin-bottom: 30px; line-height: 1.6;">${episode.description}</p>
-                    
-                    ${audioPlayerHTML}
-                    
-                    <div style="text-align: center;">
-                        <a href="${episode.spotifySearchUrl}" target="_blank" class="vhs-button" style="display: inline-block; margin: 10px;">
-                            🎧 LISTEN ON SPOTIFY
-                        </a>
-                        ${episode.link && episode.link.includes('audioboom.com') ? `
-                            <a href="${episode.link}" target="_blank" class="vhs-button" style="display: inline-block; margin: 10px;">
-                                🌐 VIEW ON AUDIOBOOM
+                    <div class="result-buttons" style="margin-top: 20px;">
+                        <button class="vhs-button" onclick="spinForEpisode()">
+                            SPIN AGAIN
+                        </button>
+                        ${episode.link ? `
+                            <a href="${episode.link}" target="_blank" class="vhs-button">
+                                VIEW ON AUDIOBOOM
                             </a>
                         ` : ''}
                     </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
+                `;
+                
+                // Make sure the result is visible
+                episodeResult.style.display = 'block';
+                episodeResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+            } else {
+                // Fallback to modal for episodes without audio
+                const modal = document.createElement('div');
+                modal.className = 'episode-modal';
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.95);
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    animation: fadeIn 0.3s ease-in;
+                    padding: 20px;
+                `;
+                
+                modal.innerHTML = `
+                    <div style="background: #000; border: 3px solid var(--neon-green); padding: 30px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative;">
+                        <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 10px; right: 10px; background: transparent; border: 1px solid var(--vhs-red); color: var(--vhs-red); padding: 5px 15px; cursor: pointer; font-family: 'Courier New', monospace;">[ CLOSE ]</button>
+                        
+                        <h2 style="color: var(--neon-green); margin-bottom: 20px; font-size: 24px;">EPISODE ${episode.number}</h2>
+                        <h3 style="color: #fff; margin-bottom: 20px;">${episode.title}</h3>
+                        <p style="color: #ccc; margin-bottom: 30px; line-height: 1.6;">${episode.description}</p>
+                        
+                        <div style="background: rgba(255, 0, 64, 0.1); border: 1px solid var(--vhs-red); padding: 20px; margin-bottom: 20px;">
+                            <p style="color: var(--vhs-red); text-align: center; margin: 0;">
+                                AUDIO FEED NOT AVAILABLE IN RSS - EXTERNAL LINK REQUIRED
+                            </p>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <a href="${episode.spotifySearchUrl || 'https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP'}" target="_blank" class="vhs-button" style="display: inline-block; margin: 10px;">
+                                🎧 SEARCH ON SPOTIFY
+                            </a>
+                            ${episode.link ? `
+                                <a href="${episode.link}" target="_blank" class="vhs-button" style="display: inline-block; margin: 10px;">
+                                    🌐 VIEW ON AUDIOBOOM
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+            }
             
             // Play load sound
             if (soundEnabled) {
@@ -3450,36 +3555,22 @@
             
             // Simulate search delay for effect
             setTimeout(() => {
-                // Split query into words for better matching
-                const queryWords = query.split(/\s+/).filter(word => word.length > 2);
-                
                 // Search through episode database
                 const results = EPISODE_DATABASE.filter(episode => {
                     // Check if it's an episode number search
-                    if (!isNaN(query) && episode.number === parseInt(query)) {
-                        return true;
+                    if (!isNaN(query)) {
+                        return episode.number === parseInt(query);
                     }
                     
-                    // Check if all query words appear in the searchText
-                    if (queryWords.length > 0) {
-                        return queryWords.every(word => episode.searchText.includes(word));
-                    }
+                    // Otherwise search in title and description
+                    const titleMatch = episode.title.toLowerCase().includes(query);
+                    const descriptionMatch = episode.description.toLowerCase().includes(query);
+                    const searchTextMatch = episode.searchText.includes(query);
                     
-                    // Fallback to simple includes
-                    return episode.searchText.includes(query);
+                    return titleMatch || descriptionMatch || searchTextMatch;
                 });
                 
-                // If no results with all words, try with any word
-                let relaxedResults = [];
-                if (results.length === 0 && queryWords.length > 1) {
-                    relaxedResults = EPISODE_DATABASE.filter(episode => {
-                        return queryWords.some(word => episode.searchText.includes(word));
-                    });
-                }
-                
-                const finalResults = results.length > 0 ? results : relaxedResults;
-                
-                if (finalResults.length === 0) {
+                if (results.length === 0) {
                     searchResults.innerHTML = `
                         <p class="search-status">NO RESULTS FOUND FOR "${query.toUpperCase()}"</p>
                         <p class="search-status" style="margin-top: 10px; font-size: 12px;">
@@ -3487,13 +3578,16 @@
                         </p>
                     `;
                 } else {
+                    // Sort results by episode number (newest first)
+                    results.sort((a, b) => (b.number || 0) - (a.number || 0));
+                    
                     // Build results HTML
-                    let resultsHTML = `<p class="search-status">FOUND ${finalResults.length} RESULT${finalResults.length > 1 ? 'S' : ''}</p>`;
+                    let resultsHTML = `<p class="search-status">FOUND ${results.length} RESULT${results.length > 1 ? 'S' : ''}</p>`;
                     
                     // Show max 10 results
-                    finalResults.slice(0, 10).forEach(episode => {
+                    results.slice(0, 10).forEach(episode => {
                         resultsHTML += `
-                            <div class="search-result-item" onclick="loadEpisode(${episode.number})" style="cursor: pointer;">
+                            <div class="search-result-item" onclick="loadEpisodeFromSearch(${episode.number})" style="cursor: pointer;">
                                 <div class="result-episode-number">EPISODE ${episode.number}</div>
                                 <div class="result-episode-title">${episode.title}</div>
                                 <div class="result-episode-topics">${episode.description.substring(0, 150)}...</div>
@@ -3501,9 +3595,9 @@
                         `;
                     });
                     
-                    if (finalResults.length > 10) {
+                    if (results.length > 10) {
                         resultsHTML += `<p class="search-status" style="margin-top: 10px; font-size: 12px;">
-                            Showing first 10 results of ${finalResults.length}
+                            Showing first 10 results of ${results.length}
                         </p>`;
                     }
                     
@@ -3846,10 +3940,11 @@
                         // Show terminal message
                         showTerminalMessage(`EPISODE ${finalEpisode} SELECTED!`);
                         
-                        // Automatically load the episode after a short delay
-                        setTimeout(() => {
+                        // Load the episode directly into the result area
+                        const selectedEpisode = EPISODE_DATABASE.find(ep => ep.number === finalEpisode);
+                        if (selectedEpisode) {
                             loadEpisode(finalEpisode);
-                        }, 1000);
+                        }
                         
                         isSpinning = false;
                     }, 500);
