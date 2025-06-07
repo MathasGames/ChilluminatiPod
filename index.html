@@ -1203,28 +1203,6 @@
             opacity: 0.7;
         }
 
-        .live-updates-box {
-            max-width: 600px;
-            margin: 50px auto 0;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid var(--vhs-red);
-            padding: 40px;
-            position: relative;
-        }
-
-        .live-updates-box h3 {
-            color: var(--vhs-red);
-            margin-bottom: 20px;
-            font-size: 24px;
-            animation: chromatic 4s infinite;
-        }
-
-        .live-updates-box p {
-            color: #ccc;
-            margin-bottom: 30px;
-        }
-
         /* Mobile adjustments for live shows */
         @media (max-width: 768px) {
             .live-shows {
@@ -1253,9 +1231,340 @@
             .small-button {
                 width: 100%;
             }
+        }
 
-            .live-updates-box {
-                padding: 25px;
+        /* Episode Search Section */
+        .episode-search-section {
+            padding: 80px 0;
+            background: rgba(0, 255, 0, 0.03);
+            position: relative;
+        }
+
+        .search-terminal {
+            max-width: 800px;
+            margin: 50px auto;
+            background: #000;
+            border: 2px solid var(--neon-green);
+            box-shadow: 
+                0 0 30px rgba(57, 255, 20, 0.3),
+                inset 0 0 30px rgba(57, 255, 20, 0.1);
+            overflow: hidden;
+        }
+
+        .search-header {
+            background: rgba(57, 255, 20, 0.1);
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--neon-green);
+            border-bottom: 1px solid var(--neon-green);
+        }
+
+        .search-interface {
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .episode-search-input {
+            flex: 1;
+            min-width: 250px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            color: var(--neon-green);
+            padding: 12px 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        .episode-search-input:focus {
+            outline: none;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .episode-search-input::placeholder {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .search-execute {
+            background: transparent;
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 12px 25px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .search-execute:hover {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+
+        .search-results {
+            padding: 20px;
+            min-height: 100px;
+            max-height: 400px;
+            overflow-y: auto;
+            border-top: 1px solid #333;
+        }
+
+        /* Custom scrollbar for search results */
+        .search-results::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .search-results::-webkit-scrollbar-track {
+            background: #111;
+            border: 1px solid #333;
+        }
+
+        .search-results::-webkit-scrollbar-thumb {
+            background: var(--neon-green);
+            border: 1px solid #111;
+        }
+
+        .search-results::-webkit-scrollbar-thumb:hover {
+            background: var(--dark-green);
+        }
+
+        .search-status {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .search-result-item {
+            background: rgba(57, 255, 20, 0.05);
+            border: 1px solid #333;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-result-item:hover {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+            transform: translateX(5px);
+        }
+
+        .result-episode-number {
+            color: var(--vhs-blue);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .result-episode-title {
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .result-episode-topics {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .search-help {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Fan Sightings Section */
+        .fan-sightings {
+            padding: 80px 0;
+            background: rgba(255, 0, 255, 0.03);
+            position: relative;
+        }
+
+        .sighting-form-container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: #000;
+            border: 3px solid var(--vhs-purple);
+            box-shadow: 
+                0 0 40px rgba(255, 0, 255, 0.3),
+                inset 0 0 40px rgba(255, 0, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sighting-form {
+            padding: 0;
+        }
+
+        .form-header {
+            background: rgba(255, 0, 255, 0.1);
+            border-bottom: 2px solid var(--vhs-purple);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .form-id {
+            color: var(--vhs-purple);
+            letter-spacing: 2px;
+        }
+
+        .form-status {
+            color: var(--vhs-red);
+            animation: pulse 2s infinite;
+        }
+
+        .form-grid {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            color: var(--vhs-purple);
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--vhs-purple);
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-footer {
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 1px solid #333;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .form-warning {
+            color: var(--vhs-red);
+            font-size: 12px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: flicker 5s infinite;
+        }
+
+        .submit-button {
+            background: transparent;
+            border: 2px solid var(--vhs-purple);
+            color: var(--vhs-purple);
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-button:hover {
+            background: var(--vhs-purple);
+            color: #000;
+            box-shadow: 0 0 30px var(--vhs-purple);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #555;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        /* Custom select dropdown styling */
+        .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF00FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+            padding-right: 40px;
+        }
+
+        /* Date input styling */
+        .form-group input[type="date"] {
+            color-scheme: dark;
+        }
+
+        .form-notes {
+            padding: 20px;
+            background: rgba(255, 0, 255, 0.05);
+            border-top: 1px solid #333;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .episode-search-section,
+            .fan-sightings {
+                padding: 50px 0;
+            }
+
+            .search-interface {
+                flex-direction: column;
+            }
+
+            .episode-search-input {
+                min-width: 100%;
+            }
+
+            .search-execute {
+                width: 100%;
+            }
+
+            .form-grid {
+                padding: 20px;
+                gap: 20px;
             }
         }
 
@@ -2162,7 +2471,9 @@
             .latest-episode,
             .hosts,
             .episodes,
-            .live-shows {
+            .live-shows,
+            .episode-search-section,
+            .fan-sightings {
                 padding: 50px 0;
             }
 
@@ -2314,8 +2625,10 @@
             <ul class="nav-links" id="navLinks">
                 <li><a href="#latest">LATEST.EXE</a></li>
                 <li><a href="#episodes">ARCHIVE</a></li>
+                <li><a href="#search">SEARCH</a></li>
                 <li><a href="#hosts">SUBJECTS</a></li>
                 <li><a href="#live">LIVE SIGNAL</a></li>
+                <li><a href="#sightings">REPORT</a></li>
                 <li><a href="#subscribe">CONNECT</a></li>
                 <li><a href="http://www.theyetee.com/chilluminati">SHOP</a></li>
             </ul>
@@ -2558,6 +2871,111 @@
         </div>
     </section>
 
+    <!-- Episode Search Section -->
+    <section id="search" class="episode-search-section">
+        <div class="container">
+            <h2 class="section-title">ARCHIVE SEARCH</h2>
+            <div class="terminal-header" style="text-align: center;">QUERY EPISODE DATABASE...</div>
+            
+            <div class="search-terminal">
+                <div class="search-header">
+                    <span>C:\CHILLUMINATI\SEARCH></span>
+                </div>
+                <div class="search-interface">
+                    <input type="text" 
+                           id="episodeSearchInput" 
+                           class="episode-search-input" 
+                           placeholder="ENTER SEARCH TERMS... (BIGFOOT, UFO, GHOST, ETC.)"
+                           autocomplete="off">
+                    <button class="search-execute" onclick="searchEpisodes()">
+                        [ EXECUTE ]
+                    </button>
+                </div>
+                <div class="search-results" id="searchResults">
+                    <p class="search-status">AWAITING QUERY...</p>
+                </div>
+            </div>
+            
+            <div class="search-help">
+                <p>Search by topic, guest name, episode number, or keywords. Results link directly to Spotify.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fan Sightings Section -->
+    <section id="sightings" class="fan-sightings">
+        <div class="container">
+            <h2 class="section-title">REPORT A SIGHTING</h2>
+            <div class="terminal-header" style="text-align: center;">SUBMIT YOUR PARANORMAL ENCOUNTER...</div>
+            
+            <div class="sighting-form-container">
+                <form id="sightingForm" class="sighting-form">
+                    <div class="form-header">
+                        <div class="form-id">FORM-X77B</div>
+                        <div class="form-status">● RECORDING</div>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="witness-name">WITNESS IDENTIFICATION:</label>
+                            <input type="text" id="witness-name" name="witness_name" required 
+                                   placeholder="YOUR NAME OR ALIAS">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="witness-location">INCIDENT LOCATION:</label>
+                            <input type="text" id="witness-location" name="location" required 
+                                   placeholder="CITY, STATE/COUNTRY">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="incident-date">DATE OF ENCOUNTER:</label>
+                            <input type="date" id="incident-date" name="date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="incident-type">CLASSIFICATION:</label>
+                            <select id="incident-type" name="type" required>
+                                <option value="">SELECT TYPE...</option>
+                                <option value="UFO">UFO / AERIAL PHENOMENON</option>
+                                <option value="CRYPTID">CRYPTID ENCOUNTER</option>
+                                <option value="GHOST">GHOST / PARANORMAL</option>
+                                <option value="TIMESLIP">TIME ANOMALY</option>
+                                <option value="PSYCHIC">PSYCHIC EXPERIENCE</option>
+                                <option value="CONSPIRACY">CONSPIRACY EVIDENCE</option>
+                                <option value="OTHER">OTHER / UNKNOWN</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label for="incident-details">DETAILED REPORT:</label>
+                            <textarea id="incident-details" name="details" rows="6" required 
+                                      placeholder="DESCRIBE YOUR ENCOUNTER IN DETAIL. INCLUDE ANY EVIDENCE, WITNESSES, OR UNUSUAL CIRCUMSTANCES..."></textarea>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label for="witness-email">CONTACT FREQUENCY (OPTIONAL):</label>
+                            <input type="email" id="witness-email" name="email" 
+                                   placeholder="YOUR EMAIL FOR FOLLOW-UP">
+                        </div>
+                    </div>
+                    
+                    <div class="form-footer">
+                        <p class="form-warning">WARNING: FALSE REPORTS WILL BE INVESTIGATED</p>
+                        <button type="submit" class="vhs-button submit-button">
+                            [ TRANSMIT REPORT ]
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="form-notes">
+                    <p>Your sighting may be featured in a future episode. By submitting, you agree to let us share your story (names can be changed upon request).</p>
+                    <p style="margin-top: 10px; font-size: 11px; opacity: 0.7;">Note: This will open your email client. For a smoother experience, consider adding a form service like Formspree.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Subscribe Section -->
     <section id="subscribe" class="latest-episode">
         <div class="container">
@@ -2787,6 +3205,126 @@
             updateSightingTracker();
             sightingInterval = setInterval(updateSightingTracker, 12000); // Update every 12 seconds
         }, 3000);
+        
+        // Episode Search Functionality
+        // Sample episode data - replace with your actual episode list
+        const episodeDatabase = [
+            { number: 302, title: "The Latest Mystery", topics: "UFO, government, conspiracy" },
+            { number: 301, title: "Bigfoot in the Suburbs", topics: "bigfoot, cryptid, sightings" },
+            { number: 300, title: "Ghost Ship of the Great Lakes", topics: "ghost, ship, haunted, maritime" },
+            // Add more episodes here or load from external source
+        ];
+        
+        function searchEpisodes() {
+            const searchInput = document.getElementById('episodeSearchInput');
+            const searchResults = document.getElementById('searchResults');
+            const query = searchInput.value.toLowerCase().trim();
+            
+            if (!query) {
+                searchResults.innerHTML = '<p class="search-status">ENTER SEARCH TERMS TO BEGIN...</p>';
+                return;
+            }
+            
+            // Show searching status
+            searchResults.innerHTML = '<p class="search-status">SCANNING ARCHIVES...</p>';
+            
+            // Simulate search delay for effect
+            setTimeout(() => {
+                // For now, show a message about going to Spotify
+                // In the future, this could search through actual episode data
+                searchResults.innerHTML = `
+                    <p class="search-status">SEARCH COMPLETE</p>
+                    <div class="search-result-item" onclick="goToSpotifySearch('${query}')">
+                        <div class="result-episode-title">SEARCH FOR "${query.toUpperCase()}" ON SPOTIFY</div>
+                        <div class="result-episode-topics">Click to search all ${TOTAL_EPISODES}+ episodes on Spotify</div>
+                    </div>
+                    <p class="search-status" style="margin-top: 20px; font-size: 12px;">
+                        Full episode database integration coming soon...
+                    </p>
+                `;
+                
+                // Play search complete sound
+                if (soundEnabled) {
+                    createSound(800, 0.1, 'sine', 0.03);
+                    setTimeout(() => createSound(1200, 0.1, 'sine', 0.03), 100);
+                }
+            }, 1000);
+        }
+        
+        function goToSpotifySearch(query) {
+            const spotifySearchUrl = `https://open.spotify.com/search/${encodeURIComponent(query + ' chilluminati')}/episodes`;
+            window.open(spotifySearchUrl, '_blank');
+        }
+        
+        // Enter key support for search
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('episodeSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchEpisodes();
+                    }
+                });
+            }
+        });
+        
+        // Better form handling for fan sightings
+        document.addEventListener('DOMContentLoaded', function() {
+            const sightingForm = document.getElementById('sightingForm');
+            if (sightingForm) {
+                sightingForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Get form data
+                    const formData = new FormData(sightingForm);
+                    const witnessName = formData.get('witness_name');
+                    const location = formData.get('location');
+                    const date = formData.get('date');
+                    const type = formData.get('type');
+                    const details = formData.get('details');
+                    const email = formData.get('email');
+                    
+                    // Format email
+                    const subject = `SIGHTING REPORT: ${type} - ${location}`;
+                    const body = `
+CHILLUMINATI SIGHTING REPORT
+============================
+
+WITNESS: ${witnessName}
+LOCATION: ${location}
+DATE: ${date}
+TYPE: ${type}
+CONTACT: ${email || 'Not provided'}
+
+DETAILED REPORT:
+${details}
+
+============================
+[Sent via ChilluminatiPodcast.com]
+                    `.trim();
+                    
+                    // Create mailto link
+                    const mailtoLink = `mailto:chilluminatipod@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                    
+                    // Show confirmation message
+                    showTerminalMessage('SIGHTING REPORT PREPARED - OPENING EMAIL CLIENT...');
+                    
+                    // Play transmission sound
+                    if (soundEnabled) {
+                        playStaticSound();
+                    }
+                    
+                    // Open email client
+                    window.location.href = mailtoLink;
+                    
+                    // Reset form after a delay
+                    setTimeout(() => {
+                        sightingForm.reset();
+                        showTerminalMessage('FORM RESET - READY FOR NEW REPORT');
+                    }, 2000);
+                });
+            }
+        });
         
         // Theme Song Easter Egg
         let themeEggSequence = [];
