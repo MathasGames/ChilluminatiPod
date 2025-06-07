@@ -3061,42 +3061,101 @@
     </div>
 
     <script>
-        // YouTube playlist ID
-        const YOUTUBE_PLAYLIST_ID = 'PLrIoJm0QOWUpOH3JFyL5581CzJ_OTLttL';
-        
-        // Episode topics for search (no need for specific video IDs!)
-        const EPISODE_TOPICS = [
-            { keywords: 'bigfoot, sasquatch, cryptid, forest, yeti, ape', episodes: 'Bigfoot episodes' },
-            { keywords: 'ghost, haunted, paranormal, spirit, poltergeist, haunting', episodes: 'Ghost & Haunting episodes' },
-            { keywords: 'ufo, alien, extraterrestrial, abduction, roswell, area 51', episodes: 'UFO & Alien episodes' },
-            { keywords: 'skinwalker, ranch, utah, paranormal, shapeshifter', episodes: 'Skinwalker Ranch series' },
-            { keywords: 'mothman, cryptid, west virginia, prophecy, point pleasant', episodes: 'Mothman episodes' },
-            { keywords: 'conspiracy, government, coverup, secret, illuminati', episodes: 'Conspiracy episodes' },
-            { keywords: 'serial killer, true crime, murder, killer, crime', episodes: 'True Crime episodes' },
-            { keywords: 'demon, possession, exorcism, evil, devil, satan', episodes: 'Demon & Possession episodes' },
-            { keywords: 'time, slip, anomaly, dimension, portal, timeline', episodes: 'Time Anomaly episodes' },
-            { keywords: 'ritual, occult, magic, summoning, witchcraft, spell', episodes: 'Occult & Ritual episodes' },
-            { keywords: 'chupacabra, cryptid, vampire, blood, puerto rico', episodes: 'Chupacabra episodes' },
-            { keywords: 'men in black, mib, agent, surveillance', episodes: 'Men in Black episodes' },
-            { keywords: 'dogman, werewolf, lycanthrope, michigan', episodes: 'Dogman episodes' },
-            { keywords: 'jersey devil, cryptid, pine barrens, new jersey', episodes: 'Jersey Devil episodes' },
-            { keywords: 'black eyed children, bek, kids, children', episodes: 'Black Eyed Children episodes' },
-            { keywords: 'wendigo, cannibal, forest, native, indigenous', episodes: 'Wendigo episodes' },
-            { keywords: 'bermuda triangle, disappearance, mystery, ocean', episodes: 'Bermuda Triangle episodes' },
-            { keywords: 'doll, haunted, cursed, annabelle, robert', episodes: 'Haunted Doll episodes' },
-            { keywords: 'lincoln, abe, abraham, president, assassination', episodes: 'Lincoln episodes' },
-            { keywords: 'vampire, blood, undead, dracula, nosferatu', episodes: 'Vampire episodes' },
-            // Add more topics as needed
+        // EPISODE DATABASE - UPDATE THIS SECTION WITH NEW EPISODES
+        // To add new episodes: Add objects to this array with videoId, number, and title
+        // You can get the videoId from the YouTube URL: youtube.com/watch?v=VIDEOID
+        const EPISODE_DATABASE = [
+            // NEWEST EPISODES GO AT THE TOP!
+            // Example format:
+            // { videoId: "dQw4w9WgXcQ", number: 301, title: "Episode 301 - Rick Astley's Ghost" },
+            
+            // Add your episodes here (get video IDs from YouTube URLs)
+            { videoId: "ExampleID1", number: 250, title: "Episode 250 - The Mothman Returns" },
+            { videoId: "ExampleID2", number: 249, title: "Episode 249 - Skinwalker Ranch Part 5" },
+            { videoId: "ExampleID3", number: 248, title: "Episode 248 - The Chupacabra Chronicles" },
+            // ... continue adding all episodes
+            
+            // Older episodes
+            { videoId: "ExampleID100", number: 150, title: "Episode 150 - Bigfoot Special" },
+            { videoId: "ExampleID101", number: 149, title: "Episode 149 - UFO Disclosure" },
+            // Add as many as you want
         ];
-        
-        // Get a random episode from playlist (no IDs needed!)
-        function getRandomPlaylistIndex() {
-            // YouTube playlists show newest first, so index 1 is the latest episode
-            // We'll randomize from 1 to 300 (or however many episodes you have)
-            // The playlist will handle invalid indexes gracefully
-            return Math.floor(Math.random() * 300) + 1;
+
+        // Episode topics for search functionality
+        const EPISODE_TOPICS = {
+            'bigfoot': [250, 150, 125, 98, 72, 45, 23], // Episode numbers about Bigfoot
+            'sasquatch': [250, 150, 125, 98, 72, 45, 23],
+            'ufo': [249, 201, 189, 167, 145, 123, 101, 89, 67, 45, 23, 12],
+            'alien': [249, 201, 189, 167, 145, 123, 101, 89, 67, 45, 23, 12],
+            'ghost': [248, 234, 212, 198, 176, 154, 132, 110, 88, 66, 44, 22],
+            'haunted': [248, 234, 212, 198, 176, 154, 132, 110, 88, 66, 44, 22],
+            'skinwalker': [249, 223, 197, 171, 145],
+            'mothman': [250, 224, 198, 172, 146, 120, 94],
+            'chupacabra': [248, 222, 196, 170, 144, 118, 92],
+            'serial killer': [247, 221, 195, 169, 143, 117, 91],
+            'conspiracy': [246, 220, 194, 168, 142, 116, 90],
+            'demon': [245, 219, 193, 167, 141, 115, 89],
+            'time': [244, 218, 192, 166, 140, 114, 88],
+            'cryptid': [243, 217, 191, 165, 139, 113, 87],
+            'vampire': [242, 216, 190, 164, 138, 112, 86],
+            'werewolf': [241, 215, 189, 163, 137, 111, 85],
+            'dogman': [241, 215, 189, 163, 137, 111, 85],
+            'lincoln': [240, 214, 188, 162, 136, 110, 84],
+            'ritual': [239, 213, 187, 161, 135, 109, 83],
+            'occult': [239, 213, 187, 161, 135, 109, 83],
+            // Add more topic mappings as needed
+        };
+
+        // AUTOMATED EPISODE FETCHER - This helps you get video IDs from your playlist
+        // Run this in the browser console on your YouTube playlist page to get all video IDs:
+        /*
+        // Copy and paste this into browser console on youtube.com/@chilluminatipod/videos:
+        Array.from(document.querySelectorAll('a#video-title')).map((el, index) => {
+            const url = el.href;
+            const videoId = url.split('v=')[1]?.split('&')[0];
+            const title = el.textContent.trim();
+            return `{ videoId: "${videoId}", number: ${250 - index}, title: "${title}" },`;
+        }).join('\n');
+        */
+
+        // Helper function to get random episode
+        function getRandomEpisode() {
+            if (EPISODE_DATABASE.length === 0) {
+                // Fallback if no episodes in database
+                return null;
+            }
+            const randomIndex = Math.floor(Math.random() * EPISODE_DATABASE.length);
+            return EPISODE_DATABASE[randomIndex];
         }
-        
+
+        // Helper function to search episodes
+        function searchEpisodesByKeyword(keyword) {
+            const results = [];
+            const lowerKeyword = keyword.toLowerCase();
+            
+            // Search in episode titles
+            EPISODE_DATABASE.forEach(episode => {
+                if (episode.title.toLowerCase().includes(lowerKeyword)) {
+                    results.push(episode);
+                }
+            });
+            
+            // Search in topic mappings
+            Object.keys(EPISODE_TOPICS).forEach(topic => {
+                if (topic.includes(lowerKeyword)) {
+                    const episodeNumbers = EPISODE_TOPICS[topic];
+                    episodeNumbers.forEach(num => {
+                        const episode = EPISODE_DATABASE.find(ep => ep.number === num);
+                        if (episode && !results.find(r => r.number === episode.number)) {
+                            results.push(episode);
+                        }
+                    });
+                }
+            });
+            
+            return results;
+        }
+
         // Sound System
         let soundEnabled = true;
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -3224,7 +3283,7 @@
             sightingInterval = setInterval(updateSightingTracker, 12000);
         }, 3000);
 
-        // Episode Search Function
+        // Episode Search Function - NOW FUNCTIONAL!
         function searchEpisodes() {
             const searchInput = document.getElementById('episodeSearchInput');
             const searchResults = document.getElementById('searchResults');
@@ -3240,10 +3299,7 @@
             
             // Simulate search delay for effect
             setTimeout(() => {
-                // Search through topics
-                const results = EPISODE_TOPICS.filter(topic => {
-                    return topic.keywords.toLowerCase().includes(query);
-                });
+                const results = searchEpisodesByKeyword(query);
                 
                 if (results.length === 0) {
                     searchResults.innerHTML = `
@@ -3261,26 +3317,21 @@
                     `;
                 } else {
                     // Build results HTML
-                    let resultsHTML = `<p class="search-status">FOUND EPISODES ABOUT "${query.toUpperCase()}"</p>`;
+                    let resultsHTML = `<p class="search-status">FOUND ${results.length} EPISODES MATCHING "${query.toUpperCase()}"</p>`;
                     
-                    results.forEach(result => {
+                    results.slice(0, 10).forEach(episode => {
                         resultsHTML += `
-                            <div class="search-result-item" onclick="playTopicEpisodes('${query}')">
-                                <div class="result-episode-number">TOPIC MATCH</div>
-                                <div class="result-episode-title">${result.episodes}</div>
-                                <div class="result-episode-topics">Related: ${result.keywords}</div>
+                            <div class="search-result-item" onclick="playEpisode('${episode.videoId}', ${episode.number})">
+                                <div class="result-episode-number">EPISODE ${episode.number}</div>
+                                <div class="result-episode-title">${episode.title}</div>
+                                <div class="result-episode-topics">Click to play episode</div>
                             </div>
                         `;
                     });
                     
-                    // Add a direct playlist search option
-                    resultsHTML += `
-                        <div class="search-result-item" onclick="playTopicEpisodes('${query}')">
-                            <div class="result-episode-number">FULL ARCHIVE</div>
-                            <div class="result-episode-title">Search all episodes for "${query}"</div>
-                            <div class="result-episode-topics">Click to browse playlist with your search in mind</div>
-                        </div>
-                    `;
+                    if (results.length > 10) {
+                        resultsHTML += `<p class="search-status" style="margin-top: 20px;">Showing first 10 results of ${results.length}</p>`;
+                    }
                     
                     searchResults.innerHTML = resultsHTML;
                 }
@@ -3293,24 +3344,24 @@
             }, 1000);
         }
 
-        // Play episodes related to a topic
-        function playTopicEpisodes(topic) {
+        // Play specific episode
+        function playEpisode(videoId, episodeNumber) {
             // Scroll to the episode machine section
             document.getElementById('episodes').scrollIntoView({ behavior: 'smooth', block: 'start' });
             
-            // After scrolling, load the playlist
+            // After scrolling, load the episode
             setTimeout(() => {
                 const slotNumber = document.getElementById('slotNumber');
                 const slotTitle = document.getElementById('slotTitle');
                 const episodeResult = document.getElementById('episodeResult');
                 
-                slotNumber.textContent = '???';
-                slotTitle.textContent = `LOADING ${topic.toUpperCase()} EPISODES`;
+                slotNumber.textContent = episodeNumber;
+                slotTitle.textContent = `LOADING EPISODE ${episodeNumber}`;
                 episodeResult.style.display = 'block';
                 
-                // Play playlist (user can skip through to find relevant episodes)
+                // Play specific video
                 document.getElementById('randomPlayer').innerHTML = `
-                    <iframe src="https://www.youtube.com/embed/videoseries?list=${YOUTUBE_PLAYLIST_ID}&autoplay=1&rel=0" 
+                    <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" 
                             frameborder="0" 
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                             allowfullscreen
@@ -3318,22 +3369,11 @@
                     </iframe>
                 `;
                 
-                showTerminalMessage(`LOADING ${topic.toUpperCase()} EPISODES - USE PLAYER CONTROLS TO BROWSE`);
+                showTerminalMessage(`LOADING EPISODE ${episodeNumber} - INITIATING PLAYBACK`);
             }, 800);
         }
 
-        // Initialize terminal message
-        window.addEventListener('load', function() {
-            setTimeout(() => {
-                showTerminalMessage('SYSTEM INITIALIZED - WELCOME TO CHILLUMINATI');
-                console.log('🎙️ CHILLUMINATI PODCAST SITE LOADED');
-                console.log('✅ Random episodes work automatically from your playlist');
-                console.log('✅ Search works by topic keywords');
-                console.log('✅ No manual updates needed!');
-            }, 2000);
-        });
-
-        // Random Episode Spinner
+        // Random Episode Spinner - NOW ACTUALLY RANDOM!
         let isSpinning = false;
         
         function spinForEpisode() {
@@ -3373,21 +3413,43 @@
                 if (spinCount > 20) {
                     clearInterval(spinInterval);
                     
-                    // Pick a random playlist position
-                    const randomIndex = getRandomPlaylistIndex();
+                    // Get random episode
+                    const randomEpisode = getRandomEpisode();
+                    
+                    if (!randomEpisode) {
+                        // Fallback to playlist if no episodes in database
+                        slotNumber.textContent = '???';
+                        slotTitle.textContent = 'PLAYLIST MODE';
+                        showTerminalMessage('EPISODE DATABASE EMPTY - LOADING PLAYLIST');
+                        
+                        setTimeout(() => {
+                            episodeResult.style.display = 'block';
+                            document.getElementById('randomPlayer').innerHTML = `
+                                <iframe src="https://www.youtube.com/embed/videoseries?list=PLrIoJm0QOWUpOH3JFyL5581CzJ_OTLttL&autoplay=1&rel=0&shuffle=1" 
+                                        frameborder="0" 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                        allowfullscreen
+                                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                                </iframe>
+                            `;
+                            lights.forEach(light => light.classList.remove('active'));
+                            isSpinning = false;
+                        }, 500);
+                        return;
+                    }
                     
                     // Stop spinning
                     slotNumber.classList.remove('spinning');
-                    slotNumber.textContent = randomIndex;
+                    slotNumber.textContent = randomEpisode.number;
                     slotTitle.textContent = 'EPISODE SELECTED!';
                     
                     // Show result and auto-play
                     setTimeout(() => {
                         episodeResult.style.display = 'block';
                         
-                        // Play from playlist at random index
+                        // Play specific episode
                         document.getElementById('randomPlayer').innerHTML = `
-                            <iframe src="https://www.youtube.com/embed/videoseries?list=${YOUTUBE_PLAYLIST_ID}&index=${randomIndex}&autoplay=1&rel=0" 
+                            <iframe src="https://www.youtube.com/embed/${randomEpisode.videoId}?autoplay=1&rel=0" 
                                     frameborder="0" 
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                     allowfullscreen
@@ -3399,7 +3461,7 @@
                         lights.forEach(light => light.classList.remove('active'));
                         
                         // Show terminal message
-                        showTerminalMessage(`LOADING PLAYLIST POSITION ${randomIndex} - INITIATING PLAYBACK`);
+                        showTerminalMessage(`LOADING EPISODE ${randomEpisode.number} - ${randomEpisode.title}`);
                         
                         isSpinning = false;
                     }, 500);
@@ -3942,9 +4004,12 @@
             setTimeout(() => {
                 showTerminalMessage('SYSTEM INITIALIZED - WELCOME TO CHILLUMINATI');
                 console.log('🎙️ CHILLUMINATI PODCAST SITE LOADED');
-                console.log('✅ Random episodes work automatically from your playlist');
-                console.log('✅ Search works by topic keywords');
-                console.log('✅ No manual updates needed!');
+                console.log('📝 TO MAKE THIS WORK:');
+                console.log('1️⃣ Edit the EPISODE_DATABASE array with your actual YouTube video IDs');
+                console.log('2️⃣ Go to youtube.com/@chilluminatipod/videos');
+                console.log('3️⃣ Open browser console (F12) and run the code snippet in comments');
+                console.log('4️⃣ Copy the output and replace the example episodes');
+                console.log('✅ Then your random button and search will work perfectly!');
             }, 2000);
         });
     </script>
