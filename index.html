@@ -3562,6 +3562,10 @@ async function populateEpisodeDatabase() {
             const link = item.querySelector('link')?.textContent || '';
             const pubDate = item.querySelector('pubDate')?.textContent || '';
             
+            // Extract audio URL from enclosure tag
+            const enclosure = item.querySelector('enclosure');
+            const audioUrl = enclosure?.getAttribute('url') || '';
+            
             // Clean up description (remove HTML)
             const cleanDescription = description
                 .replace(/<[^>]*>/g, '')
@@ -3571,7 +3575,7 @@ async function populateEpisodeDatabase() {
                 .replace(/&gt;/g, '>')
                 .replace(/&quot;/g, '"')
                 .replace(/&#39;/g, "'")
-                .substring(0, 300);
+                .trim();
             
             // Extract episode number from title
             let episodeNumber = null;
@@ -3594,7 +3598,7 @@ async function populateEpisodeDatabase() {
                 }
             }
             
-            // If still no number, check if it's a minisode or special episode
+            // Skip minisodes for main count
             const isMinisode = title.toLowerCase().includes('minisode') || 
                               title.toLowerCase().includes('mini-sode') ||
                               title.toLowerCase().includes('patreon');
@@ -3604,24 +3608,23 @@ async function populateEpisodeDatabase() {
                 episodeNumber = items.length - i;
             }
             
-            // Skip minisodes for the main database (optional - remove this if you want to include them)
+            // Skip minisodes (optional - remove this if you want to include them)
             if (isMinisode) {
                 continue;
             }
             
-            // Create Spotify search URL using episode title
-            const spotifySearchUrl = `https://open.spotify.com/search/${encodeURIComponent('Chilluminati ' + title)}`;
-            
-            // Create searchable text
-            const searchText = `${title} ${cleanDescription}`.toLowerCase();
+            // Create searchable text - make it more comprehensive
+            const searchText = `${title} ${cleanDescription} episode ${episodeNumber}`.toLowerCase();
             
             // Add to database
             EPISODE_DATABASE.push({
                 number: episodeNumber,
                 title: title,
-                description: cleanDescription,
-                link: link, // Audioboom link
-                spotifySearchUrl: spotifySearchUrl,
+                description: cleanDescription.substring(0, 500), // Keep more description
+                fullDescription: cleanDescription,
+                link: link,
+                audioUrl: audioUrl,
+                spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati ' + title)}`,
                 pubDate: pubDate,
                 searchText: searchText
             });
@@ -3631,9 +3634,7 @@ async function populateEpisodeDatabase() {
         EPISODE_DATABASE.sort((a, b) => (b.number || 0) - (a.number || 0));
         
         console.log(`✓ Episode database populated with ${EPISODE_DATABASE.length} episodes`);
-        
-        // Log first few episodes for debugging
-        console.log('Sample episodes:', EPISODE_DATABASE.slice(0, 3));
+        console.log('Sample episode with audio:', EPISODE_DATABASE[0]);
         
         // Update total episodes count
         TOTAL_EPISODES = EPISODE_DATABASE.length;
@@ -3643,7 +3644,7 @@ async function populateEpisodeDatabase() {
     } catch (error) {
         console.error('Failed to populate episode database:', error);
         
-        // Try alternative approach - create basic database
+        // Create fallback database
         console.log('Creating fallback episode database...');
         createFallbackDatabase();
         
@@ -3651,45 +3652,22 @@ async function populateEpisodeDatabase() {
     }
 }
 
-// Create fallback database with better episode info
+// Create fallback database
 function createFallbackDatabase() {
     EPISODE_DATABASE = [];
     
-    // Add some recent known episodes (you can expand this list)
-    const knownEpisodes = [
-        { number: 302, title: "Episode 302 - The Mysterious Case" },
-        { number: 301, title: "Episode 301 - Paranormal Investigation" },
-        { number: 300, title: "Episode 300 - Special 300th Episode!" },
-        // Add more known episodes here if needed
-    ];
-    
-    // Add known episodes first
-    knownEpisodes.forEach(ep => {
-        EPISODE_DATABASE.push({
-            number: ep.number,
-            title: ep.title,
-            description: 'Episode details loading... Click to search on Spotify.',
-            link: 'https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP',
-            spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + ep.number)}`,
-            searchText: ep.title.toLowerCase()
-        });
-    });
-    
-    // Fill in remaining episodes
     for (let i = TOTAL_EPISODES; i >= 1; i--) {
-        if (!EPISODE_DATABASE.find(ep => ep.number === i)) {
-            EPISODE_DATABASE.push({
-                number: i,
-                title: `Episode ${i}`,
-                description: 'Search for this episode on Spotify.',
-                link: 'https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP',
-                spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + i)}`,
-                searchText: `episode ${i}`
-            });
-        }
+        EPISODE_DATABASE.push({
+            number: i,
+            title: `Episode ${i}`,
+            description: 'Episode details unavailable. Click to search on Spotify.',
+            fullDescription: '',
+            link: 'https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP',
+            audioUrl: '',
+            spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + i)}`,
+            searchText: `episode ${i}`
+        });
     }
-    
-    EPISODE_DATABASE.sort((a, b) => b.number - a.number);
 }
 
 // Update the loadEpisode function
@@ -3702,6 +3680,7 @@ function loadEpisode(episodeNumber) {
             number: episodeNumber,
             title: `Episode ${episodeNumber}`,
             description: 'Search for this episode on Spotify.',
+            audioUrl: '',
             spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + episodeNumber)}`
         };
         showEpisodeModal(fallbackEpisode);
@@ -3711,7 +3690,7 @@ function loadEpisode(episodeNumber) {
     showEpisodeModal(episode);
 }
 
-// Updated modal function with better Spotify integration
+// Updated modal with embedded audio player
 function showEpisodeModal(episode) {
     // Show loading message
     showTerminalMessage(`LOADING EPISODE ${episode.number}...`);
@@ -3734,6 +3713,22 @@ function showEpisodeModal(episode) {
         padding: 20px;
     `;
     
+    // Create audio player if audio URL exists
+    let audioPlayerHTML = '';
+    if (episode.audioUrl) {
+        audioPlayerHTML = `
+            <div style="background: #000; border: 2px solid var(--neon-green); padding: 20px; margin-bottom: 20px;">
+                <div style="color: var(--neon-green); font-size: 12px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">
+                    ▶ Direct Audio Feed
+                </div>
+                <audio controls style="width: 100%; filter: sepia(1) saturate(2) hue-rotate(90deg);">
+                    <source src="${episode.audioUrl}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+        `;
+    }
+    
     modal.innerHTML = `
         <div style="background: #000; border: 3px solid var(--neon-green); padding: 30px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative;">
             <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 10px; right: 10px; background: transparent; border: 1px solid var(--vhs-red); color: var(--vhs-red); padding: 5px 15px; cursor: pointer; font-family: 'Courier New', monospace;">[ CLOSE ]</button>
@@ -3742,20 +3737,18 @@ function showEpisodeModal(episode) {
             <h3 style="color: #fff; margin-bottom: 20px;">${episode.title}</h3>
             <p style="color: #ccc; margin-bottom: 30px; line-height: 1.6;">${episode.description}</p>
             
+            ${audioPlayerHTML}
+            
             <div style="text-align: center;">
                 <a href="${episode.spotifySearchUrl}" target="_blank" class="vhs-button" style="display: inline-block; margin: 10px;">
-                    🔍 SEARCH ON SPOTIFY
+                    🎧 LISTEN ON SPOTIFY
                 </a>
                 ${episode.link && episode.link.includes('audioboom.com') ? `
                     <a href="${episode.link}" target="_blank" class="vhs-button" style="display: inline-block; margin: 10px;">
-                        🎧 LISTEN ON AUDIOBOOM
+                        🌐 VIEW ON AUDIOBOOM
                     </a>
                 ` : ''}
             </div>
-            
-            <p style="color: #666; text-align: center; margin-top: 20px; font-size: 12px;">
-                This will open Spotify search with this episode. Look for the exact episode number in the results.
-            </p>
         </div>
     `;
     
@@ -3768,7 +3761,7 @@ function showEpisodeModal(episode) {
     }
 }
 
-// Update the searchEpisodes function to handle empty database better
+// Fixed search function that properly searches by keywords
 function searchEpisodes() {
     const searchInput = document.getElementById('episodeSearchInput');
     const searchResults = document.getElementById('searchResults');
@@ -3784,7 +3777,6 @@ function searchEpisodes() {
         searchResults.innerHTML = '<p class="search-status">DATABASE LOADING... TRYING AGAIN...</p>';
         // Try to load database again
         populateEpisodeDatabase().then(() => {
-            // Retry search after loading
             setTimeout(() => searchEpisodes(), 1000);
         });
         return;
@@ -3795,10 +3787,120 @@ function searchEpisodes() {
     
     // Simulate search delay for effect
     setTimeout(() => {
+        // Split query into words for better matching
+        const queryWords = query.split(/\s+/).filter(word => word.length > 2);
+        
         // Search through episode database
         const results = EPISODE_DATABASE.filter(episode => {
+            // Check if it's an episode number search
+            if (!isNaN(query) && episode.number === parseInt(query)) {
+                return true;
+            }
+            
+            // Check if all query words appear in the searchText
+            if (queryWords.length > 0) {
+                return queryWords.every(word => episode.searchText.includes(word));
+            }
+            
+            // Fallback to simple includes
+            return episode.searchText.includes(query);
+        });
+        
+        // If no results with all words, try with any word
+        let relaxedResults = [];
+        if (results.length === 0 && queryWords.length > 1) {
+            relaxedResults = EPISODE_DATABASE.filter(episode => {
+                return queryWords.some(word => episode.searchText.includes(word));
+            });
+        }
+        
+        const finalResults = results.length > 0 ? results : relaxedResults;
+        
+        if (finalResults.length === 0) {
+            searchResults.innerHTML = `
+                <p class="search-status">NO RESULTS FOUND FOR "${query.toUpperCase()}"</p>
+                <p class="search-status" style="margin-top: 10px; font-size: 12px;">
+                    Try different keywords, episode numbers, or shorter search terms
+                </p>
+            `;
+        } else {
+            // Build results HTML
+            let resultsHTML = `<p class="search-status">FOUND ${finalResults.length} RESULT${finalResults.length > 1 ? 'S' : ''}</p>`;
+            
+            // Show max 10 results
+            finalResults.slice(0, 10).forEach(episode => {
+                // Highlight matching terms in the display
+                let highlightedTitle = episode.title;
+                let highlightedDesc = episode.description.substring(0, 150);
+                
+                resultsHTML += `
+                    <div class="search-result-item" onclick="loadEpisode(${episode.number})" style="cursor: pointer;">
+                        <div class="result-episode-number">EPISODE ${episode.number}</div>
+                        <div class="result-episode-title">${highlightedTitle}</div>
+                        <div class="result-episode-topics">${highlightedDesc}...</div>
+                    </div>
+                `;
+            });
+            
+            if (finalResults.length > 10) {
+                resultsHTML += `<p class="search-status" style="margin-top: 10px; font-size: 12px;">
+                    Showing first 10 results of ${finalResults.length}
+                </p>`;
+            }
+            
+            searchResults.innerHTML = resultsHTML;
+        }
+        
+        // Play search complete sound
+        if (soundEnabled) {
+            createSound(800, 0.1, 'sine', 0.03);
+            setTimeout(() => createSound(1200, 0.1, 'sine', 0.03), 100);
+        }
+    }, 1000);
+}
+
+// Call populateEpisodeDatabase after page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Populate database after a short delay
+    setTimeout(() => {
+        populateEpisodeDatabase().then(success => {
+            if (success) {
+                showTerminalMessage('EPISODE DATABASE LOADED');
+            } else {
+                showTerminalMessage('USING FALLBACK DATABASE');
+            }
+        });
+    }, 1500);
+});
+// Also update the searchEpisodes function to show better feedback
+function searchEpisodes() {
+    const searchInput = document.getElementById('episodeSearchInput');
+    const searchResults = document.getElementById('searchResults');
+    const query = searchInput.value.toLowerCase().trim();
+    
+    if (!query) {
+        searchResults.innerHTML = '<p class="search-status">ENTER SEARCH TERMS TO BEGIN...</p>';
+        return;
+    }
+    
+    // Check if database is loaded
+    if (EPISODE_DATABASE.length === 0) {
+        searchResults.innerHTML = '<p class="search-status">DATABASE STILL LOADING... PLEASE TRY AGAIN IN A MOMENT</p>';
+        // Try to load database again
+        populateEpisodeDatabase();
+        return;
+    }
+    
+    // Show searching status
+    searchResults.innerHTML = '<p class="search-status">SCANNING ARCHIVES...</p>';
+    
+    // Simulate search delay for effect
+    setTimeout(() => {
+        // Search through episode database
+        const results = EPISODE_DATABASE.filter(episode => {
+            // Search in title, description, and episode number
             return episode.searchText.includes(query) || 
-                   episode.number?.toString() === query ||
+                   episode.number.toString() === query ||
                    episode.title.toLowerCase().includes(query);
         });
         
@@ -3840,20 +3942,6 @@ function searchEpisodes() {
         }
     }, 1000);
 }
-
-// Call populateEpisodeDatabase after page loads
-document.addEventListener('DOMContentLoaded', function() {
-    // Populate database after a short delay
-    setTimeout(() => {
-        populateEpisodeDatabase().then(success => {
-            if (success) {
-                showTerminalMessage('EPISODE DATABASE LOADED');
-            } else {
-                showTerminalMessage('USING FALLBACK DATABASE');
-            }
-        });
-    }, 1500);
-});
         /* AUTOMATIC EPISODE COUNTER
          * This code automatically counts your episodes from your RSS feed
          * so you never have to manually update the numbers again!
