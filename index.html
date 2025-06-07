@@ -3179,10 +3179,7 @@
             // Update the tracker
             trackerText.innerHTML = `<span class="sighting-item">${fullText}</span>`;
             
-            // Play subtle notification sound
-            if (soundEnabled && Math.random() < 0.3) {
-                createSound(400, 0.1, 'sine', 0.01);
-            }
+            // Removed passive beep sound that was playing randomly
             
             // Move to next sighting
             currentSightingIndex = (currentSightingIndex + 1) % sightings.length;
@@ -3209,14 +3206,6 @@
         }, 3000);
         
         // Episode Search Functionality
-        // Sample episode data - replace with your actual episode list
-        const episodeDatabase = [
-            { number: 302, title: "The Latest Mystery", topics: "UFO, government, conspiracy" },
-            { number: 301, title: "Bigfoot in the Suburbs", topics: "bigfoot, cryptid, sightings" },
-            { number: 300, title: "Ghost Ship of the Great Lakes", topics: "ghost, ship, haunted, maritime" },
-            // Add more episodes here or load from external source
-        ];
-        
         function searchEpisodes() {
             const searchInput = document.getElementById('episodeSearchInput');
             const searchResults = document.getElementById('searchResults');
@@ -3232,18 +3221,42 @@
             
             // Simulate search delay for effect
             setTimeout(() => {
-                // For now, show a message about going to Spotify
-                // In the future, this could search through actual episode data
-                searchResults.innerHTML = `
-                    <p class="search-status">SEARCH COMPLETE</p>
-                    <div class="search-result-item" onclick="goToSpotifySearch('${query}')">
-                        <div class="result-episode-title">SEARCH FOR "${query.toUpperCase()}" ON SPOTIFY</div>
-                        <div class="result-episode-topics">Click to search all ${TOTAL_EPISODES}+ episodes on Spotify</div>
-                    </div>
-                    <p class="search-status" style="margin-top: 20px; font-size: 12px;">
-                        Full episode database integration coming soon...
-                    </p>
-                `;
+                // Search through episode database
+                const results = EPISODE_DATABASE.filter(episode => 
+                    episode.searchText.includes(query) || 
+                    episode.number.toString() === query
+                );
+                
+                if (results.length === 0) {
+                    searchResults.innerHTML = `
+                        <p class="search-status">NO RESULTS FOUND FOR "${query.toUpperCase()}"</p>
+                        <p class="search-status" style="margin-top: 10px; font-size: 12px;">
+                            Try different keywords or episode numbers
+                        </p>
+                    `;
+                } else {
+                    // Build results HTML
+                    let resultsHTML = `<p class="search-status">FOUND ${results.length} RESULT${results.length > 1 ? 'S' : ''}</p>`;
+                    
+                    // Show max 10 results
+                    results.slice(0, 10).forEach(episode => {
+                        resultsHTML += `
+                            <div class="search-result-item" onclick="loadEpisode(${episode.number})">
+                                <div class="result-episode-number">EPISODE ${episode.number}</div>
+                                <div class="result-episode-title">${episode.title}</div>
+                                <div class="result-episode-topics">${episode.description.substring(0, 150)}...</div>
+                            </div>
+                        `;
+                    });
+                    
+                    if (results.length > 10) {
+                        resultsHTML += `<p class="search-status" style="margin-top: 10px; font-size: 12px;">
+                            Showing first 10 results of ${results.length}
+                        </p>`;
+                    }
+                    
+                    searchResults.innerHTML = resultsHTML;
+                }
                 
                 // Play search complete sound
                 if (soundEnabled) {
@@ -3253,9 +3266,63 @@
             }, 1000);
         }
         
-        function goToSpotifySearch(query) {
-            const spotifySearchUrl = `https://open.spotify.com/search/${encodeURIComponent(query + ' chilluminati')}/episodes`;
-            window.open(spotifySearchUrl, '_blank');
+        // Function to load a specific episode
+        function loadEpisode(episodeNumber) {
+            const episode = EPISODE_DATABASE.find(ep => ep.number === episodeNumber);
+            
+            if (!episode) {
+                showTerminalMessage('EPISODE NOT FOUND IN DATABASE');
+                return;
+            }
+            
+            // Show loading message
+            showTerminalMessage(`LOADING EPISODE ${episodeNumber}...`);
+            
+            // Create a modal to display the episode
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease-in;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: #000; border: 3px solid var(--neon-green); padding: 30px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
+                    <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 10px; right: 10px; background: transparent; border: 1px solid var(--vhs-red); color: var(--vhs-red); padding: 5px 15px; cursor: pointer; font-family: 'Courier New', monospace;">[ CLOSE ]</button>
+                    
+                    <h2 style="color: var(--neon-green); margin-bottom: 20px; font-size: 24px;">EPISODE ${episode.number}</h2>
+                    <h3 style="color: #fff; margin-bottom: 20px;">${episode.title}</h3>
+                    <p style="color: #ccc; margin-bottom: 30px;">${episode.description}</p>
+                    
+                    <div style="background: #000; border: 1px solid var(--neon-green); padding: 10px; margin-bottom: 20px;">
+                        ${episode.spotifyId ? 
+                            `<iframe style="border-radius:12px" src="https://open.spotify.com/embed/episode/${episode.spotifyId}?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>` :
+                            `<iframe style="border-radius:12px" src="https://open.spotify.com/embed/show/71Dnx4yKkQ0TfPWWu3swYP?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                            <p style="color: var(--vhs-red); text-align: center; margin-top: 10px; font-size: 12px;">SPECIFIC EPISODE EMBEDDING NOT AVAILABLE - SHOWING LATEST EPISODES</p>`
+                        }
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <a href="${episode.link || `https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP?si=887d9ae4368f4efd`}" target="_blank" class="vhs-button" style="display: inline-block; margin-top: 10px;">OPEN IN SPOTIFY</a>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Play load sound
+            if (soundEnabled) {
+                createSound(523, 0.1, 'sine', 0.05);
+                setTimeout(() => createSound(659, 0.1, 'sine', 0.05), 100);
+            }
         }
         
         // Enter key support for search
@@ -3461,16 +3528,6 @@
             
             // Try multiple proxy services in order
             const proxyServices = [
-                {
-                    name: 'corsproxy.io',
-                    url: 'https://corsproxy.io/?',
-                    parser: async (response) => await response.text()
-                },
-                {
-                    name: 'api.codetabs.com',
-                    url: 'https://api.codetabs.com/v1/proxy?quest=',
-                    parser: async (response) => await response.text()
-                },
                 {
                     name: 'allorigins',
                     url: 'https://api.allorigins.win/get?url=',
@@ -4035,4 +4092,14 @@
         }
     </script>
 </body>
-</html>
+</html> 'corsproxy.io',
+                    url: 'https://corsproxy.io/?',
+                    parser: async (response) => await response.text()
+                },
+                {
+                    name: 'api.codetabs.com',
+                    url: 'https://api.codetabs.com/v1/proxy?quest=',
+                    parser: async (response) => await response.text()
+                },
+                {
+                    name:
