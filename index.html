@@ -1020,6 +1020,7 @@
 
         .machine-controls {
             margin-bottom: 40px;
+            text-align: center;
         }
 
         .dos-header {
@@ -1062,6 +1063,9 @@
                 4px 4px 0 #0a0a0a,
                 8px 8px 0 #111,
                 0 0 20px rgba(57, 255, 20, 0.5);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .spin-button:hover {
@@ -1676,7 +1680,7 @@
             }
 
             /* Button text alignment fix */
-            .vhs-button, .spin-button {
+            .vhs-button {
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -1913,10 +1917,14 @@
                 </div>
                 
                 <div class="machine-controls">
-                    <div class="dos-header">C:\CHILLUMINATI\EPISODES></div>
-                    <button class="spin-button" onclick="spinForEpisode()">
-                        <span class="button-text">[ EXECUTE RANDOM.EXE ]</span>
-                    </button>
+                    <div style="text-align: center;">
+                        <div class="dos-header">C:\CHILLUMINATI\EPISODES></div>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="spin-button" onclick="spinForEpisode()">
+                            <span class="button-text">[ EXECUTE RANDOM.EXE ]</span>
+                        </button>
+                    </div>
                     
                     <div class="machine-instructions">
                         <p>Can't decide what to listen to? Let the universe choose!</p>
