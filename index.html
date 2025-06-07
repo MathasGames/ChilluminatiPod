@@ -1848,10 +1848,25 @@
             flex-wrap: wrap;
         }
 
-        /* AudioBoom iframe styling */
-        .episode-result iframe {
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        /* YouTube Player Styling */
+        .youtube-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            background: #000;
+            border: 2px solid var(--neon-green);
+            margin: 20px 0;
+        }
+
+        .youtube-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
         }
 
         /* Live Sighting Tracker */
@@ -2640,7 +2655,7 @@
                 <span id="countdownText">CALCULATING NEXT TRANSMISSION...</span>
             </div>
             <div style="text-align: center; margin-top: 40px;">
-                <a href="https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP?si=887d9ae4368f4efd" class="vhs-button" id="heroEpisodeButton">VIEW ALL 302+ EPISODES</a>
+                <a href="https://www.youtube.com/@chilluminatipod" class="vhs-button" id="heroEpisodeButton">VIEW ALL 300+ EPISODES</a>
             </div>
         </div>
     </section>
@@ -2649,20 +2664,25 @@
     <section id="latest" class="latest-episode">
         <div class="container">
             <h2 class="section-title">LATEST TRANSMISSION</h2>
-            <div class="terminal-header">ACCESSING FILE: EP302_LATEST.MP3</div>
+            <div class="terminal-header">ACCESSING FILE: LATEST_EPISODE.MP3</div>
             <div class="episode-card">
-                <div class="episode-number" id="latestEpisodeNumber">EPISODE 302+</div>
-                <h3 class="episode-title">Latest Episode</h3>
+                <div class="episode-number" id="latestEpisodeNumber">LATEST EPISODE</div>
+                <h3 class="episode-title">Recent Episode Feed</h3>
                 <p class="episode-description">
                     New episodes drop every Saturday! Join Mike, Jesse, and Alex as they explore the weird, 
                     mysterious, and downright hilarious corners of our world. From Bigfoot to ghosts to that 
                     one time Abe Lincoln might have been a skinwalker.
                 </p>
-                <div class="audio-player">
-                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/show/71Dnx4yKkQ0TfPWWu3swYP?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                <div class="youtube-container">
+                    <iframe src="https://www.youtube.com/embed/videoseries?list=PLrIoJm0QOWUpOH3JFyL5581CzJ_OTLttL&autoplay=0&rel=0" 
+                            title="Chilluminati Podcast Playlist" 
+                            frameborder="0" 
+                            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                    </iframe>
                 </div>
                 <div class="cta-buttons">
-                    <a href="https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP?si=887d9ae4368f4efd" class="vhs-button">LISTEN ON SPOTIFY</a>
+                    <a href="https://www.youtube.com/@chilluminatipod" class="vhs-button">YOUTUBE CHANNEL</a>
                     <a href="https://podcasts.apple.com/us/podcast/chilluminati-podcast/id1344357698" class="vhs-button">APPLE PODCASTS</a>
                 </div>
             </div>
@@ -2725,7 +2745,7 @@
     <section id="episodes" class="episodes">
         <div class="container">
             <h2 class="section-title">EPISODE ROULETTE</h2>
-            <div class="terminal-header" style="text-align: center;" id="archiveCount">302+ TRANSMISSIONS IN THE ARCHIVE...</div>
+            <div class="terminal-header" style="text-align: center;" id="archiveCount">300+ TRANSMISSIONS IN THE ARCHIVE...</div>
             
             <!-- Random Episode Machine -->
             <div class="episode-machine">
@@ -2753,18 +2773,17 @@
                     
                     <div class="machine-instructions">
                         <p>Can't decide what to listen to? Let the universe choose!</p>
-                        <p id="machineArchiveText">Execute the randomizer and discover an episode from our 302+ archive.</p>
+                        <p id="machineArchiveText">Execute the randomizer and discover an episode from our archive.</p>
                     </div>
                 </div>
                 
                 <div class="episode-result" id="episodeResult" style="display: none;">
                     <h3>EPISODE LOADED</h3>
                     <div class="result-content">
-                        <div class="result-number" id="resultNumber">Episode #???</div>
-                        <div class="result-instruction">
-                            Loading episode data...
+                        <div class="youtube-container">
+                            <div id="randomPlayer"></div>
                         </div>
-                        <div class="result-buttons">
+                        <div class="result-buttons" style="margin-top: 20px;">
                             <button class="vhs-button" onclick="spinForEpisode()">
                                 SPIN AGAIN
                             </button>
@@ -2776,13 +2795,10 @@
             <!-- Browse All Link -->
             <div style="text-align: center; margin-top: 60px;">
                 <div class="terminal-header" style="margin-bottom: 20px;">OR BROWSE MANUALLY:</div>
-                <a href="https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP?si=887d9ae4368f4efd" 
+                <a href="https://www.youtube.com/@chilluminatipod/videos" 
                    class="vhs-button" target="_blank">
-                    ACCESS FULL ARCHIVE ON SPOTIFY
+                    ACCESS FULL ARCHIVE ON YOUTUBE
                 </a>
-                <p style="color: #666; font-size: 12px; margin-top: 20px; font-family: 'Courier New', monospace;">
-                    DEBUG: Press F12 and type <code style="color: var(--neon-green);">debugRSS()</code> to check RSS feed status
-                </p>
             </div>
         </div>
     </section>
@@ -2881,7 +2897,7 @@
             </div>
             
             <div class="search-help">
-                <p>Search by topic, guest name, episode number, or keywords. Results link directly to Spotify.</p>
+                <p>Search by topic, guest name, episode number, or keywords.</p>
             </div>
         </div>
     </section>
@@ -3008,7 +3024,7 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>Explore</h3>
-                    <a href="https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP?si=887d9ae4368f4efd">All Episodes</a>
+                    <a href="https://www.youtube.com/@chilluminatipod/videos">All Episodes</a>
                     <a href="https://www.patreon.com/chilluminatipod">Minisodes (Patreon)</a>
                     <a href="#live">Live Shows</a>
                     <a href="http://www.youtube.com/@chilluminatipod">YouTube Archive</a>
@@ -3045,6 +3061,19 @@
     </div>
 
     <script>
+        // YouTube playlist ID
+        const YOUTUBE_PLAYLIST_ID = 'PLrIoJm0QOWUpOH3JFyL5581CzJ_OTLttL';
+        
+        // Episode Database - You'll need to fill in real video IDs
+        const EPISODES = [
+            { number: 302, videoId: 'REPLACE_WITH_REAL_ID', title: 'Episode 302', keywords: 'paranormal, mystery' },
+            { number: 301, videoId: 'REPLACE_WITH_REAL_ID', title: 'Episode 301', keywords: 'ghost, haunting' },
+            { number: 300, videoId: 'REPLACE_WITH_REAL_ID', title: 'Episode 300 - Special', keywords: 'anniversary, bigfoot' },
+            { number: 299, videoId: 'REPLACE_WITH_REAL_ID', title: 'The Skinwalker Ranch', keywords: 'skinwalker, ranch, utah, paranormal' },
+            { number: 298, videoId: 'REPLACE_WITH_REAL_ID', title: 'Mothman Returns', keywords: 'mothman, cryptid, west virginia' },
+            // Add more episodes with real YouTube video IDs
+        ];
+        
         // Sound System
         let soundEnabled = true;
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -3102,21 +3131,6 @@
                 soundToggle.classList.add('muted');
             }
         }
-        
-        // Add sound effects to interactive elements
-        document.addEventListener('DOMContentLoaded', function() {
-            // Special sound for spin button
-            const spinButton = document.querySelector('.spin-button');
-            if (spinButton) {
-                spinButton.addEventListener('click', () => {
-                    if (soundEnabled) {
-                        playStaticSound();
-                        setTimeout(playStaticSound, 100);
-                        setTimeout(playStaticSound, 200);
-                    }
-                });
-            }
-        });
         
         // Live Sighting Tracker
         const sightings = [
@@ -3184,375 +3198,10 @@
         // Start sighting tracker after a delay
         setTimeout(() => {
             updateSightingTracker();
-            sightingInterval = setInterval(updateSightingTracker, 12000); // Update every 12 seconds
+            sightingInterval = setInterval(updateSightingTracker, 12000);
         }, 3000);
 
-        // Episode Database
-        let EPISODE_DATABASE = [];
-        let TOTAL_EPISODES = 302; // Default fallback value
-
-        // Function to fetch and populate episode database from RSS feed
-        async function populateEpisodeDatabase() {
-            console.log('Fetching episode data from RSS feed...');
-            
-            const proxyUrl = 'https://api.allorigins.win/get?url=';
-            const rssUrl = 'https://audioboom.com/channels/5031584.rss';
-            
-            try {
-                const response = await fetch(proxyUrl + encodeURIComponent(rssUrl));
-                
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch RSS feed: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                const xmlText = data.contents;
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-                
-                // Check for parse errors
-                const parseError = xmlDoc.querySelector('parsererror');
-                if (parseError) {
-                    throw new Error('Failed to parse RSS feed');
-                }
-                
-                // Get all episodes
-                const items = xmlDoc.getElementsByTagName('item');
-                console.log(`Found ${items.length} episodes in RSS feed`);
-                
-                // Clear existing database
-                EPISODE_DATABASE = [];
-                
-                // Process each episode
-                for (let i = 0; i < items.length; i++) {
-                    const item = items[i];
-                    
-                    // Extract episode data
-                    const title = item.querySelector('title')?.textContent || '';
-                    const description = item.querySelector('description')?.textContent || '';
-                    const link = item.querySelector('link')?.textContent || '';
-                    const pubDate = item.querySelector('pubDate')?.textContent || '';
-                    
-                    // Extract audio URL - try multiple methods
-                    const enclosure = item.querySelector('enclosure');
-                    let audioUrl = '';
-                    
-                    // Method 1: Standard enclosure tag
-                    if (enclosure) {
-                        audioUrl = enclosure.getAttribute('url') || '';
-                        if (i < 3) {
-                            console.log(`Enclosure found for episode ${items.length - i}:`, audioUrl);
-                        }
-                    }
-                    
-                    // Method 2: If we have an AudioBoom link, construct the MP3 URL
-                    if (!audioUrl && link && link.includes('audioboom.com/posts/')) {
-                        const match = link.match(/posts\/(\d+)/);
-                        if (match) {
-                            const postId = match[1];
-                            // Try AudioBoom's direct MP3 format
-                            audioUrl = `https://audioboom.com/posts/${postId}.mp3`;
-                            if (i < 3) {
-                                console.log(`Constructed AudioBoom URL for episode ${items.length - i}:`, audioUrl);
-                            }
-                        }
-                    }
-                    
-                    // Method 3: Check for media:content or other media tags
-                    if (!audioUrl) {
-                        // Look for any element with 'media' in the tag name
-                        const allElements = item.getElementsByTagName('*');
-                        for (let el of allElements) {
-                            if (el.tagName.toLowerCase().includes('media') || 
-                                el.tagName.toLowerCase().includes('content')) {
-                                const url = el.getAttribute('url');
-                                if (url && (url.includes('.mp3') || url.includes('audio'))) {
-                                    audioUrl = url;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Method 4: Check guid if it contains audio URL
-                    if (!audioUrl) {
-                        const guid = item.querySelector('guid')?.textContent || '';
-                        if (guid.includes('.mp3') || guid.includes('/audio/')) {
-                            audioUrl = guid;
-                        }
-                    }
-                    
-                    // Log what we found for first few episodes
-                    if (i < 5) {
-                        console.log(`Episode ${items.length - i} audio detection:`, {
-                            hasEnclosure: !!enclosure,
-                            link: link,
-                            audioUrl: audioUrl,
-                            method: audioUrl ? (enclosure ? 'enclosure' : 'constructed') : 'none'
-                        });
-                    }
-                    
-                    // Clean up description (remove HTML)
-                    const cleanDescription = description
-                        .replace(/<[^>]*>/g, '')
-                        .replace(/&nbsp;/g, ' ')
-                        .replace(/&amp;/g, '&')
-                        .replace(/&lt;/g, '<')
-                        .replace(/&gt;/g, '>')
-                        .replace(/&quot;/g, '"')
-                        .replace(/&#39;/g, "'")
-                        .trim();
-                    
-                    // Skip minisodes for main count (but keep them in the database)
-                    const isMinisode = title.toLowerCase().includes('minisode') || 
-                                      title.toLowerCase().includes('mini-sode') ||
-                                      title.toLowerCase().includes('patreon');
-                    
-                    // Extract episode number from title
-                    let episodeNumber = null;
-                    
-                    // Try different patterns to match episode numbers
-                    const patterns = [
-                        /Episode\s+(\d+)/i,
-                        /Ep\s+(\d+)/i,
-                        /Ep\.?\s*(\d+)/i,
-                        /#(\d+)/,
-                        /(\d+)\s*-/,
-                        /^(\d+)\./
-                    ];
-                    
-                    for (const pattern of patterns) {
-                        const match = title.match(pattern);
-                        if (match) {
-                            episodeNumber = parseInt(match[1]);
-                            break;
-                        }
-                    }
-                    
-                    if (!episodeNumber && !isMinisode) {
-                        // Use position-based numbering for main episodes
-                        episodeNumber = items.length - i;
-                    }
-                    
-                    // Skip if no episode number (like minisodes)
-                    if (!episodeNumber) {
-                        continue;
-                    }
-                    
-                    // Create searchable text - make it more comprehensive
-                    const searchText = `${title} ${cleanDescription} episode ${episodeNumber}`.toLowerCase();
-                    
-                    // Add to database
-                    EPISODE_DATABASE.push({
-                        number: episodeNumber,
-                        title: displayTitle || title || `Episode ${episodeNumber}`,
-                        description: cleanDescription.substring(0, 500), // Keep more description
-                        fullDescription: cleanDescription,
-                        link: link,
-                        audioUrl: audioUrl,
-                        spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati ' + title)}`,
-                        pubDate: pubDate,
-                        searchText: searchText
-                    });
-                }
-                
-                // Sort by episode number (descending)
-                EPISODE_DATABASE.sort((a, b) => (b.number || 0) - (a.number || 0));
-                
-                console.log(`✓ Episode database populated with ${EPISODE_DATABASE.length} episodes`);
-                
-                // Check how many episodes have audio URLs
-                const episodesWithAudio = EPISODE_DATABASE.filter(ep => ep.audioUrl).length;
-                console.log(`Episodes with audio URLs: ${episodesWithAudio} out of ${EPISODE_DATABASE.length}`);
-                
-                // Apply any known titles
-                if (typeof applyKnownTitles === 'function') {
-                    applyKnownTitles();
-                }
-                
-                if (EPISODE_DATABASE.length > 0) {
-                    console.log('Sample episode:', {
-                        number: EPISODE_DATABASE[0].number,
-                        title: EPISODE_DATABASE[0].title,
-                        hasAudio: !!EPISODE_DATABASE[0].audioUrl,
-                        audioUrl: EPISODE_DATABASE[0].audioUrl
-                    });
-                }
-                
-                // Update total episodes count
-                TOTAL_EPISODES = EPISODE_DATABASE.length;
-                updateEpisodeReferences();
-                
-                return true;
-            } catch (error) {
-                console.error('Failed to populate episode database:', error);
-                
-                // Create fallback database
-                console.log('Creating fallback episode database...');
-                createFallbackDatabase();
-                
-                return false;
-            }
-        }
-
-        // Create fallback database with better title handling
-        function createFallbackDatabase() {
-            EPISODE_DATABASE = [];
-            
-            // Common episode themes for better searching
-            const themes = [
-                'ghost', 'ufo', 'bigfoot', 'conspiracy', 'serial killer', 'cryptid', 
-                'alien', 'haunted', 'mystery', 'paranormal', 'curse', 'legend'
-            ];
-            
-            for (let i = TOTAL_EPISODES; i >= 1; i--) {
-                // For fallback, create searchable entries even without full titles
-                const theme = themes[i % themes.length];
-                
-                EPISODE_DATABASE.push({
-                    number: i,
-                    title: `Episode ${i}`,
-                    description: `Episode ${i} content. Search by episode number or try keywords like: ${theme}`,
-                    fullDescription: '',
-                    link: `https://audioboom.com/channels/5031584`,
-                    audioUrl: '',
-                    spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + i)}`,
-                    searchText: `episode ${i} ${theme} chilluminati podcast`
-                });
-            }
-            
-            console.log('Fallback database created - episodes will show numbers only');
-            console.log('TIP: If you know episode topics, try searching for keywords!');
-        }
-
-        // Load episode from search results - scrolls to machine and loads it there
-        function loadEpisodeFromSearch(episodeNumber) {
-            // Scroll to the episode machine section
-            const episodesSection = document.getElementById('episodes');
-            if (episodesSection) {
-                episodesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            
-            // After scrolling, load the episode
-            setTimeout(() => {
-                // Update the machine display
-                const slotNumber = document.getElementById('slotNumber');
-                const slotTitle = document.getElementById('slotTitle');
-                const episodeResult = document.getElementById('episodeResult');
-                
-                if (slotNumber && slotTitle) {
-                    slotNumber.textContent = episodeNumber;
-                    slotTitle.textContent = 'EPISODE LOADED!';
-                }
-                
-                // Make sure result area is visible
-                if (episodeResult) {
-                    episodeResult.style.display = 'block';
-                }
-                
-                // Load the episode
-                loadEpisode(episodeNumber);
-            }, 800);
-        }
-        
-        // Update the loadEpisode function
-        function loadEpisode(episodeNumber) {
-            const episode = EPISODE_DATABASE.find(ep => ep.number === episodeNumber);
-            
-            if (!episode) {
-                // If not in database, create a search link
-                const fallbackEpisode = {
-                    number: episodeNumber,
-                    title: `Episode ${episodeNumber}`,
-                    description: 'Loading episode information from AudioBoom...',
-                    audioUrl: '',
-                    link: `https://audioboom.com/channels/5031584`,
-                    spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + episodeNumber)}`
-                };
-                showEpisodeModal(fallbackEpisode);
-                return;
-            }
-            
-            console.log(`Loading Episode ${episode.number}:`, episode.audioUrl ? 'Has audio' : 'No audio');
-            showEpisodeModal(episode);
-        }
-
-        // Updated modal to open AudioBoom in new tab
-        function showEpisodeModal(episode) {
-            // Show loading message
-            showTerminalMessage(`LOADING EPISODE ${episode.number}...`);
-            
-            // Always use the episode result area
-            const episodeResult = document.getElementById('episodeResult');
-            const resultContent = episodeResult.querySelector('.result-content');
-            
-            if (!episodeResult || !resultContent) {
-                console.error('Episode result area not found!');
-                return;
-            }
-            
-            // Auto-open AudioBoom in new tab if we have a link
-            if (episode.link && episode.link.includes('audioboom.com')) {
-                window.open(episode.link, '_blank');
-                showTerminalMessage('OPENING AUDIOBOOM TRANSMISSION...');
-            }
-            
-            // Update the result content with episode info
-            resultContent.innerHTML = `
-                <div class="result-number">Episode #${episode.number}</div>
-                <h3 style="color: #fff; margin: 20px 0; font-size: 24px;">${episode.title.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</h3>
-                <p style="color: #ccc; margin-bottom: 20px; line-height: 1.6; max-height: 200px; overflow-y: auto;">${episode.description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
-                
-                <div style="background: rgba(0, 255, 0, 0.1); border: 2px solid var(--neon-green); padding: 20px; margin: 20px 0; text-align: center;">
-                    <p style="color: var(--neon-green); margin: 0 0 15px 0; font-size: 14px;">
-                        ${episode.link ? 'AUDIOBOOM TRANSMISSION OPENED IN NEW TAB' : 'SELECT A STREAMING PLATFORM BELOW'}
-                    </p>
-                    ${episode.link ? `
-                        <p style="color: #999; font-size: 12px; margin: 0;">
-                            Didn't open? <a href="${episode.link}" target="_blank" style="color: var(--neon-green); text-decoration: underline;">Click here</a>
-                        </p>
-                    ` : ''}
-                </div>
-                
-                <div class="result-buttons" style="margin-top: 20px;">
-                    <button class="vhs-button" onclick="spinForEpisode()">
-                        SPIN FOR ANOTHER
-                    </button>
-                    ${episode.link ? `
-                        <a href="${episode.link}" target="_blank" class="vhs-button">
-                            OPEN AUDIOBOOM AGAIN
-                        </a>
-                    ` : ''}
-                    <a href="https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + episode.number)}" target="_blank" class="vhs-button">
-                        FIND ON SPOTIFY
-                    </a>
-                </div>
-            `;
-            
-            // Make sure the result is visible and scroll to it
-            episodeResult.style.display = 'block';
-            
-            // Update the machine display to show the loaded episode
-            const slotNumber = document.getElementById('slotNumber');
-            const slotTitle = document.getElementById('slotTitle');
-            if (slotNumber && slotTitle) {
-                slotNumber.textContent = episode.number;
-                slotTitle.textContent = 'TRANSMISSION INITIATED';
-            }
-            
-            // Smooth scroll to the result
-            setTimeout(() => {
-                episodeResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
-            
-            // Play load sound
-            if (soundEnabled) {
-                createSound(523, 0.1, 'sine', 0.05);
-                setTimeout(() => createSound(659, 0.1, 'sine', 0.05), 100);
-            }
-        }
-
-        // Fixed search function that properly searches by keywords
+        // Episode Search Function
         function searchEpisodes() {
             const searchInput = document.getElementById('episodeSearchInput');
             const searchResults = document.getElementById('searchResults');
@@ -3563,66 +3212,43 @@
                 return;
             }
             
-            // Check if database is loaded
-            if (EPISODE_DATABASE.length === 0) {
-                searchResults.innerHTML = '<p class="search-status">DATABASE LOADING... TRYING AGAIN...</p>';
-                // Try to load database again
-                populateEpisodeDatabase().then(() => {
-                    setTimeout(() => searchEpisodes(), 1000);
-                });
-                return;
-            }
-            
             // Show searching status
             searchResults.innerHTML = '<p class="search-status">SCANNING ARCHIVES...</p>';
             
             // Simulate search delay for effect
             setTimeout(() => {
                 // Search through episode database
-                const results = EPISODE_DATABASE.filter(episode => {
-                    // Check if it's an episode number search
-                    if (!isNaN(query)) {
-                        return episode.number === parseInt(query);
+                const results = EPISODES.filter(episode => {
+                    // Check episode number
+                    if (!isNaN(query) && episode.number === parseInt(query)) {
+                        return true;
                     }
                     
-                    // Otherwise search in title and description
-                    const titleMatch = episode.title.toLowerCase().includes(query);
-                    const descriptionMatch = episode.description.toLowerCase().includes(query);
-                    const searchTextMatch = episode.searchText.includes(query);
-                    
-                    return titleMatch || descriptionMatch || searchTextMatch;
+                    // Check title and keywords
+                    return episode.title.toLowerCase().includes(query) || 
+                           episode.keywords.toLowerCase().includes(query);
                 });
                 
                 if (results.length === 0) {
                     searchResults.innerHTML = `
                         <p class="search-status">NO RESULTS FOUND FOR "${query.toUpperCase()}"</p>
                         <p class="search-status" style="margin-top: 10px; font-size: 12px;">
-                            Try different keywords, episode numbers, or shorter search terms
+                            Try different keywords, episode numbers, or check YouTube directly
                         </p>
                     `;
                 } else {
-                    // Sort results by episode number (newest first)
-                    results.sort((a, b) => (b.number || 0) - (a.number || 0));
-                    
                     // Build results HTML
                     let resultsHTML = `<p class="search-status">FOUND ${results.length} RESULT${results.length > 1 ? 'S' : ''}</p>`;
                     
-                    // Show max 10 results
                     results.slice(0, 10).forEach(episode => {
                         resultsHTML += `
-                            <div class="search-result-item" onclick="loadEpisodeFromSearch(${episode.number})" style="cursor: pointer;">
+                            <div class="search-result-item" onclick="loadEpisodeFromSearch('${episode.videoId}', ${episode.number})">
                                 <div class="result-episode-number">EPISODE ${episode.number}</div>
                                 <div class="result-episode-title">${episode.title}</div>
-                                <div class="result-episode-topics">${episode.description.substring(0, 150)}...</div>
+                                <div class="result-episode-topics">Keywords: ${episode.keywords}</div>
                             </div>
                         `;
                     });
-                    
-                    if (results.length > 10) {
-                        resultsHTML += `<p class="search-status" style="margin-top: 10px; font-size: 12px;">
-                            Showing first 10 results of ${results.length}
-                        </p>`;
-                    }
                     
                     searchResults.innerHTML = resultsHTML;
                 }
@@ -3635,119 +3261,104 @@
             }, 1000);
         }
 
-        // Call populateEpisodeDatabase after page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            // Populate database after a short delay
+        // Load episode from search
+        function loadEpisodeFromSearch(videoId, episodeNumber) {
+            // Scroll to the episode machine section
+            document.getElementById('episodes').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // After scrolling, load the episode
             setTimeout(() => {
-                console.log('🎙️ CHILLUMINATI WEBSITE LOADED');
-                console.log('Loading episode database from RSS feed...');
-                populateEpisodeDatabase().then(success => {
-                    if (success) {
-                        showTerminalMessage('EPISODE DATABASE LOADED');
-                        console.log('✅ Episode database ready!');
-                        console.log('💡 TIP: Type debugRSS() in console to check RSS feed details');
-                        console.log('💡 TIP: Type testEpisode(14) to test a specific episode');
-                    } else {
-                        showTerminalMessage('USING FALLBACK DATABASE');
-                        console.log('⚠️ RSS feed failed, using fallback database');
-                        console.log('💡 TIP: Type debugRSS() to see what went wrong');
-                    }
-                });
-            }, 1500);
-        });
-
-        // Function to update all episode count references in the page
-        function updateEpisodeReferences() {
-            console.log(`Updating all references to ${TOTAL_EPISODES} episodes...`);
-            
-            // Update hero button by ID
-            const heroButton = document.getElementById('heroEpisodeButton');
-            if (heroButton) {
-                heroButton.textContent = `VIEW ALL ${TOTAL_EPISODES}+ EPISODES`;
-            }
-            
-            // Update archive text by ID
-            const archiveCount = document.getElementById('archiveCount');
-            if (archiveCount) {
-                archiveCount.textContent = `${TOTAL_EPISODES}+ TRANSMISSIONS IN THE ARCHIVE...`;
-            }
-            
-            // Update episode card by ID
-            const episodeNumber = document.getElementById('latestEpisodeNumber');
-            if (episodeNumber) {
-                episodeNumber.textContent = `EPISODE ${TOTAL_EPISODES}+`;
-            }
-            
-            // Update machine instructions by ID
-            const machineArchiveText = document.getElementById('machineArchiveText');
-            if (machineArchiveText) {
-                machineArchiveText.textContent = `Execute the randomizer and discover an episode from our ${TOTAL_EPISODES}+ archive.`;
-            }
+                document.getElementById('slotNumber').textContent = episodeNumber;
+                document.getElementById('slotTitle').textContent = 'EPISODE LOADED!';
+                document.getElementById('episodeResult').style.display = 'block';
+                
+                // Update the player
+                document.getElementById('randomPlayer').innerHTML = `
+                    <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                    </iframe>
+                `;
+                
+                showTerminalMessage(`LOADING EPISODE ${episodeNumber}...`);
+            }, 800);
         }
+
+        // Random Episode Spinner
+        let isSpinning = false;
         
-        // Function to fetch and count episodes from RSS feed
-        async function updateEpisodeCount() {
-            console.log('Attempting to fetch episode count...');
+        function spinForEpisode() {
+            if (isSpinning) return;
             
-            // Try multiple proxy services in order
-            const proxyServices = [
-                {
-                    name: 'allorigins',
-                    url: 'https://api.allorigins.win/get?url=',
-                    parser: async (response) => {
-                        const data = await response.json();
-                        return data.contents;
-                    }
-                }
-            ];
+            isSpinning = true;
+            const slotNumber = document.getElementById('slotNumber');
+            const slotTitle = document.getElementById('slotTitle');
+            const lights = document.querySelectorAll('.light');
+            const episodeResult = document.getElementById('episodeResult');
             
-            const rssUrl = 'https://audioboom.com/channels/5031584.rss';
+            // Hide previous result
+            episodeResult.style.display = 'none';
             
-            for (const proxy of proxyServices) {
-                try {
-                    console.log(`Trying ${proxy.name}...`);
-                    const response = await fetch(proxy.url + encodeURIComponent(rssUrl));
-                    
-                    if (!response.ok) {
-                        throw new Error(`${proxy.name} returned ${response.status}`);
-                    }
-                    
-                    const xmlText = await proxy.parser(response);
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-                    
-                    // Check for parse errors
-                    const parseError = xmlDoc.querySelector('parsererror');
-                    if (parseError) {
-                        throw new Error('Failed to parse RSS feed');
-                    }
-                    
-                    // Count all <item> tags in the RSS feed
-                    const items = xmlDoc.getElementsByTagName('item');
-                    console.log(`Found ${items.length} total items in RSS feed`);
-                    
-                    if (items.length > 0) {
-                        TOTAL_EPISODES = items.length;
-                        
-                        // Update all references to episode count
-                        updateEpisodeReferences();
-                        
-                        // Log success
-                        console.log(`✓ Episode count updated! Found ${TOTAL_EPISODES} episodes using ${proxy.name}`);
-                        return; // Success, exit the function
-                    }
-                } catch (error) {
-                    console.log(`${proxy.name} failed:`, error.message);
-                    // Continue to next proxy
-                }
+            // Start spinning animation
+            slotNumber.classList.add('spinning');
+            slotTitle.textContent = 'RANDOMIZING...';
+            
+            // Animate lights
+            lights.forEach((light, index) => {
+                setTimeout(() => {
+                    light.classList.add('active');
+                }, index * 200);
+            });
+            
+            // Play spinning sound
+            if (soundEnabled) {
+                playStaticSound();
             }
             
-            // If all proxies failed
-            console.log('All proxy services failed. Using default count of', TOTAL_EPISODES);
-            console.log('This is usually due to CORS restrictions. The episode count will remain at the default value.');
-            
-            // Still update references even with default count for consistency
-            updateEpisodeReferences();
+            // Spin through random numbers
+            let spinCount = 0;
+            const spinInterval = setInterval(() => {
+                slotNumber.textContent = Math.floor(Math.random() * EPISODES.length) + 1;
+                spinCount++;
+                
+                if (spinCount > 20) {
+                    clearInterval(spinInterval);
+                    
+                    // Pick a random episode
+                    const randomIndex = Math.floor(Math.random() * EPISODES.length);
+                    const selectedEpisode = EPISODES[randomIndex];
+                    
+                    // Stop spinning
+                    slotNumber.classList.remove('spinning');
+                    slotNumber.textContent = selectedEpisode.number;
+                    slotTitle.textContent = 'EPISODE SELECTED!';
+                    
+                    // Show result and auto-play
+                    setTimeout(() => {
+                        episodeResult.style.display = 'block';
+                        
+                        // Update the player
+                        document.getElementById('randomPlayer').innerHTML = `
+                            <iframe src="https://www.youtube.com/embed/${selectedEpisode.videoId}?autoplay=1&rel=0" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                            </iframe>
+                        `;
+                        
+                        // Reset lights
+                        lights.forEach(light => light.classList.remove('active'));
+                        
+                        // Show terminal message
+                        showTerminalMessage(`EPISODE ${selectedEpisode.number} LOADED - INITIATING PLAYBACK`);
+                        
+                        isSpinning = false;
+                    }, 500);
+                }
+            }, 100);
         }
 
         // Loading Screen
@@ -3769,9 +3380,6 @@
                     loadingProgress.style.width = progress + '%';
                 }
             }, 200);
-            
-            // Start loading episode data immediately
-            updateEpisodeCount();
         });
 
         // Mobile Menu Toggle
@@ -3799,15 +3407,6 @@
                 menuToggle.classList.remove('active');
                 menuText.textContent = '[ MENU ]';
             });
-        });
-        
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!menuToggle.contains(event.target) && !navLinks.contains(event.target)) {
-                navLinks.classList.remove('active');
-                menuToggle.classList.remove('active');
-                menuText.textContent = '[ MENU ]';
-            }
         });
 
         // VHS Timestamp
@@ -3846,7 +3445,7 @@
             }
         }
         
-        setInterval(updateLastScan, 30000); // Update every 30 seconds
+        setInterval(updateLastScan, 30000);
         updateLastScan();
 
         // Smooth scrolling for navigation links
@@ -3856,17 +3455,6 @@
                 const targetId = this.getAttribute('href');
                 const target = document.querySelector(targetId);
                 if (target) {
-                    // Close mobile menu if open
-                    const navLinks = document.getElementById('navLinks');
-                    const menuToggle = document.getElementById('menuToggle');
-                    const menuText = document.getElementById('menuText');
-                    if (navLinks && navLinks.classList.contains('active')) {
-                        navLinks.classList.remove('active');
-                        menuToggle.classList.remove('active');
-                        menuText.textContent = '[ MENU ]';
-                    }
-                    
-                    // Scroll to target
                     target.scrollIntoView({
                         behavior: 'smooth',
                         block: 'start'
@@ -3916,38 +3504,6 @@
         setInterval(updateCountdown, 1000);
         updateCountdown();
 
-        // Subtle text glitch effect
-        let glitchInterval;
-        const spinButton = document.querySelector('.spin-button');
-        const buttonTextElement = document.querySelector('.spin-button .button-text');
-        const originalText = '[ EXECUTE RANDOM.EXE ]';
-        
-        if (spinButton && buttonTextElement) {
-            spinButton.addEventListener('mouseenter', () => {
-                glitchInterval = setInterval(() => {
-                    if (Math.random() < 0.3) {
-                        const glitchText = originalText.split('').map(char => {
-                            if (char !== ' ' && char !== '[' && char !== ']' && Math.random() < 0.1) {
-                                return String.fromCharCode(char.charCodeAt(0) + Math.floor(Math.random() * 5) - 2);
-                            }
-                            return char;
-                        }).join('');
-                        
-                        buttonTextElement.textContent = glitchText;
-                        
-                        setTimeout(() => {
-                            buttonTextElement.textContent = originalText;
-                        }, 50);
-                    }
-                }, 100);
-            });
-            
-            spinButton.addEventListener('mouseleave', () => {
-                clearInterval(glitchInterval);
-                buttonTextElement.textContent = originalText;
-            });
-        }
-
         // Performance Mode Toggle
         function togglePerformanceMode() {
             const body = document.body;
@@ -3975,83 +3531,7 @@
             }, 3000);
         }
 
-        // Random Episode Spinner
-        let isSpinning = false;
-        
-        function spinForEpisode() {
-            if (isSpinning) return;
-            
-            isSpinning = true;
-            const slotNumber = document.getElementById('slotNumber');
-            const slotTitle = document.getElementById('slotTitle');
-            const lights = document.querySelectorAll('.light');
-            const episodeResult = document.getElementById('episodeResult');
-            
-            // Hide previous result
-            episodeResult.style.display = 'none';
-            
-            // Start spinning animation
-            slotNumber.classList.add('spinning');
-            slotTitle.textContent = 'RANDOMIZING...';
-            
-            // Animate lights
-            lights.forEach((light, index) => {
-                setTimeout(() => {
-                    light.classList.add('active');
-                }, index * 200);
-            });
-            
-            // Spin through random numbers
-            let spinCount = 0;
-            const spinInterval = setInterval(() => {
-                slotNumber.textContent = Math.floor(Math.random() * TOTAL_EPISODES) + 1;
-                spinCount++;
-                
-                if (spinCount > 20) {
-                    clearInterval(spinInterval);
-                    
-                    // Pick a random episode from the database
-                    let finalEpisode;
-                    if (EPISODE_DATABASE.length > 0) {
-                        // Prefer newer episodes (first 100) as they're more likely to have working links
-                        const recentEpisodes = EPISODE_DATABASE.slice(0, Math.min(100, EPISODE_DATABASE.length));
-                        const randomIndex = Math.floor(Math.random() * recentEpisodes.length);
-                        finalEpisode = recentEpisodes[randomIndex].number;
-                    } else {
-                        // Fallback to random number
-                        finalEpisode = Math.floor(Math.random() * TOTAL_EPISODES) + 1;
-                    }
-                    
-                    // Stop spinning
-                    slotNumber.classList.remove('spinning');
-                    slotNumber.textContent = finalEpisode;
-                    slotTitle.textContent = 'EPISODE SELECTED!';
-                    
-                    // Show result and load episode
-                    setTimeout(() => {
-                        document.getElementById('resultNumber').textContent = `Episode #${finalEpisode}`;
-                        episodeResult.style.display = 'block';
-                        episodeResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        
-                        // Reset lights
-                        lights.forEach(light => light.classList.remove('active'));
-                        
-                        // Show terminal message
-                        showTerminalMessage(`EPISODE ${finalEpisode} SELECTED!`);
-                        
-                        // Load the episode directly into the result area
-                        const selectedEpisode = EPISODE_DATABASE.find(ep => ep.number === finalEpisode);
-                        if (selectedEpisode) {
-                            loadEpisode(finalEpisode);
-                        }
-                        
-                        isSpinning = false;
-                    }, 500);
-                }
-            }, 100);
-        }
-
-        // Host Secrets - Mobile Friendly
+        // Host Secrets
         function revealHostSecret(host) {
             showTerminalMessage('ACCESSING CLASSIFIED FILES...');
             
@@ -4145,7 +3625,7 @@
             }
         }, 10000);
 
-        // Click on logo for secret - Updated with clearer hint
+        // Click on logo for secret
         let logoClicks = 0;
         const logo = document.querySelector('.logo');
         if (logo) {
@@ -4363,6 +3843,59 @@
                     });
                 });
             }
+        });
+
+        // Subtle text glitch effect for spin button
+        let glitchInterval;
+        const spinButton = document.querySelector('.spin-button');
+        const buttonTextElement = document.querySelector('.spin-button .button-text');
+        const originalText = '[ EXECUTE RANDOM.EXE ]';
+        
+        if (spinButton && buttonTextElement) {
+            spinButton.addEventListener('mouseenter', () => {
+                glitchInterval = setInterval(() => {
+                    if (Math.random() < 0.3) {
+                        const glitchText = originalText.split('').map(char => {
+                            if (char !== ' ' && char !== '[' && char !== ']' && Math.random() < 0.1) {
+                                return String.fromCharCode(char.charCodeAt(0) + Math.floor(Math.random() * 5) - 2);
+                            }
+                            return char;
+                        }).join('');
+                        
+                        buttonTextElement.textContent = glitchText;
+                        
+                        setTimeout(() => {
+                            buttonTextElement.textContent = originalText;
+                        }, 50);
+                    }
+                }, 100);
+            });
+            
+            spinButton.addEventListener('mouseleave', () => {
+                clearInterval(glitchInterval);
+                buttonTextElement.textContent = originalText;
+            });
+        }
+
+        // Add special sound effect to spin button
+        document.addEventListener('DOMContentLoaded', function() {
+            const spinButton = document.querySelector('.spin-button');
+            if (spinButton) {
+                spinButton.addEventListener('click', () => {
+                    if (soundEnabled) {
+                        playStaticSound();
+                        setTimeout(playStaticSound, 100);
+                        setTimeout(playStaticSound, 200);
+                    }
+                });
+            }
+        });
+
+        // Initialize terminal message
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                showTerminalMessage('SYSTEM INITIALIZED - WELCOME TO CHILLUMINATI');
+            }, 2000);
         });
     </script>
 </body>
