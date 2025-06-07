@@ -3206,17 +3206,7 @@
             sightingInterval = setInterval(updateSightingTracker, 12000); // Update every 12 seconds
         }, 3000);
         
-        // Episode Search Functionality
-        function searchEpisodes() {
-            const searchInput = document.getElementById('episodeSearchInput');
-            const searchResults = document.getElementById('searchResults');
-            const query = searchInput.value.toLowerCase().trim();
-            
-            if (!query) {
-                searchResults.innerHTML = '<p class="search-status">ENTER SEARCH TERMS TO BEGIN...</p>';
-                return;
-            }
-            
+                   
             // Show searching status
             searchResults.innerHTML = '<p class="search-status">SCANNING ARCHIVES...</p>';
             
@@ -3267,15 +3257,7 @@
             }, 1000);
         }
         
-        // Function to load a specific episode
-        function loadEpisode(episodeNumber) {
-            const episode = EPISODE_DATABASE.find(ep => ep.number === episodeNumber);
-            
-            if (!episode) {
-                showTerminalMessage('EPISODE NOT FOUND IN DATABASE');
-                return;
-            }
-            
+                    
             // Show loading message
             showTerminalMessage(`LOADING EPISODE ${episodeNumber}...`);
             
@@ -3872,24 +3854,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, 1500);
 });
-// Also update the searchEpisodes function to show better feedback
-function searchEpisodes() {
-    const searchInput = document.getElementById('episodeSearchInput');
-    const searchResults = document.getElementById('searchResults');
-    const query = searchInput.value.toLowerCase().trim();
-    
-    if (!query) {
-        searchResults.innerHTML = '<p class="search-status">ENTER SEARCH TERMS TO BEGIN...</p>';
-        return;
-    }
-    
-    // Check if database is loaded
-    if (EPISODE_DATABASE.length === 0) {
-        searchResults.innerHTML = '<p class="search-status">DATABASE STILL LOADING... PLEASE TRY AGAIN IN A MOMENT</p>';
-        // Try to load database again
-        populateEpisodeDatabase();
-        return;
-    }
+
     
     // Show searching status
     searchResults.innerHTML = '<p class="search-status">SCANNING ARCHIVES...</p>';
