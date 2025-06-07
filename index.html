@@ -1696,70 +1696,91 @@
         
         // Function to fetch and count episodes from RSS feed
         async function updateEpisodeCount() {
-            try {
-                console.log('Attempting to fetch episode count...');
-                
-                // Using a CORS proxy to fetch the RSS feed
-                const proxyUrl = 'https://api.allorigins.win/get?url=';
-                const rssUrl = 'https://audioboom.com/channels/5031584.rss';
-                
-                const response = await fetch(proxyUrl + encodeURIComponent(rssUrl));
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch RSS feed');
-                }
-                
-                const data = await response.json();
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(data.contents, 'text/xml');
-                
-                // Check for parse errors
-                const parseError = xmlDoc.querySelector('parsererror');
-                if (parseError) {
-                    throw new Error('Failed to parse RSS feed');
-                }
-                
-                // Count all <item> tags in the RSS feed
-                const items = xmlDoc.getElementsByTagName('item');
-                console.log(`Found ${items.length} total items in RSS feed`);
-                
-                // Optional: Filter out minisodes if needed
-                // Uncomment and modify if you want to exclude minisodes
-                /*
-                let mainEpisodeCount = 0;
-                for (let item of items) {
-                    const title = item.querySelector('title')?.textContent || '';
-                    if (!title.toLowerCase().includes('minisode')) {
-                        mainEpisodeCount++;
+            console.log('Attempting to fetch episode count...');
+            
+            // Try multiple proxy services in order
+            const proxyServices = [
+                {
+                    name: 'corsproxy.io',
+                    url: 'https://corsproxy.io/?',
+                    parser: async (response) => await response.text()
+                },
+                {
+                    name: 'api.codetabs.com',
+                    url: 'https://api.codetabs.com/v1/proxy?quest=',
+                    parser: async (response) => await response.text()
+                },
+                {
+                    name: 'allorigins',
+                    url: 'https://api.allorigins.win/get?url=',
+                    parser: async (response) => {
+                        const data = await response.json();
+                        return data.contents;
                     }
                 }
-                TOTAL_EPISODES = mainEpisodeCount;
-                */
-                
-                if (items.length > 0) {
-                    TOTAL_EPISODES = items.length;
-                    
-                    // Update all references to episode count
-                    updateEpisodeReferences();
-                    
-                    // Log success (you can see this in browser console with F12)
-                    console.log(`✓ Episode count updated! Found ${TOTAL_EPISODES} episodes.`);
-                } else {
-                    console.log('No episodes found in RSS feed');
-                }
-            } catch (error) {
-                console.log('Could not fetch RSS feed:', error.message);
-                console.log('Using default count of', TOTAL_EPISODES);
-                
-                // Try alternative method - direct fetch without proxy
+            ];
+            
+            const rssUrl = 'https://audioboom.com/channels/5031584.rss';
+            
+            for (const proxy of proxyServices) {
                 try {
-                    console.log('Trying direct fetch...');
-                    const response = await fetch('https://audioboom.com/channels/5031584.rss');
-                    console.log('Direct fetch response:', response.status);
-                } catch (e) {
-                    console.log('Direct fetch also failed - this is normal due to CORS');
+                    console.log(`Trying ${proxy.name}...`);
+                    const response = await fetch(proxy.url + encodeURIComponent(rssUrl));
+                    
+                    if (!response.ok) {
+                        throw new Error(`${proxy.name} returned ${response.status}`);
+                    }
+                    
+                    const xmlText = await proxy.parser(response);
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                    
+                    // Check for parse errors
+                    const parseError = xmlDoc.querySelector('parsererror');
+                    if (parseError) {
+                        throw new Error('Failed to parse RSS feed');
+                    }
+                    
+                    // Count all <item> tags in the RSS feed
+                    const items = xmlDoc.getElementsByTagName('item');
+                    console.log(`Found ${items.length} total items in RSS feed`);
+                    
+                    // Optional: Filter out minisodes if needed
+                    // Uncomment and modify if you want to exclude minisodes
+                    /*
+                    let mainEpisodeCount = 0;
+                    for (let item of items) {
+                        const title = item.querySelector('title')?.textContent || '';
+                        // Adjust this condition based on how your minisodes are titled
+                        if (!title.toLowerCase().includes('minisode') && 
+                            !title.toLowerCase().includes('mini-sode') &&
+                            !title.toLowerCase().includes('patreon')) {
+                            mainEpisodeCount++;
+                        }
+                    }
+                    TOTAL_EPISODES = mainEpisodeCount;
+                    console.log(`Found ${mainEpisodeCount} main episodes (excluding minisodes)`);
+                    */
+                    
+                    if (items.length > 0) {
+                        TOTAL_EPISODES = items.length;
+                        
+                        // Update all references to episode count
+                        updateEpisodeReferences();
+                        
+                        // Log success
+                        console.log(`✓ Episode count updated! Found ${TOTAL_EPISODES} episodes using ${proxy.name}`);
+                        return; // Success, exit the function
+                    }
+                } catch (error) {
+                    console.log(`${proxy.name} failed:`, error.message);
+                    // Continue to next proxy
                 }
             }
+            
+            // If all proxies failed
+            console.log('All proxy services failed. Using default count of', TOTAL_EPISODES);
+            console.log('This is usually due to CORS restrictions. The episode count will remain at the default value.');
         }
         
         // Function to update all episode count references in the page
