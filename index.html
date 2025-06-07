@@ -1848,10 +1848,15 @@
             flex-wrap: wrap;
         }
 
-        /* AudioBoom iframe styling */
-        .episode-result iframe {
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        /* Audio player styling */
+        .episode-result audio {
+            width: 100%;
+            height: 54px;
+            outline: none;
+        }
+
+        .episode-result audio::-webkit-media-controls-panel {
+            background: rgba(0, 0, 0, 0.8);
         }
 
         /* Live Sighting Tracker */
@@ -2757,6 +2762,7 @@
                     </div>
                 </div>
                 
+                <!-- Episode Result (Hidden by default) -->
                 <div class="episode-result" id="episodeResult" style="display: none;">
                     <h3>EPISODE LOADED</h3>
                     <div class="result-content">
@@ -2780,9 +2786,6 @@
                    class="vhs-button" target="_blank">
                     ACCESS FULL ARCHIVE ON SPOTIFY
                 </a>
-                <p style="color: #666; font-size: 12px; margin-top: 20px; font-family: 'Courier New', monospace;">
-                    DEBUG: Press F12 and type <code style="color: var(--neon-green);">debugRSS()</code> to check RSS feed status
-                </p>
             </div>
         </div>
     </section>
@@ -3207,6 +3210,13 @@
                 
                 const data = await response.json();
                 const xmlText = data.contents;
+                
+                // Check if we got an error page instead of RSS
+                if (xmlText.includes('<!DOCTYPE html>') || xmlText.includes('<html')) {
+                    console.error('Received HTML instead of RSS feed');
+                    throw new Error('RSS feed returned HTML');
+                }
+                
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
                 
@@ -3233,65 +3243,6 @@
                     const link = item.querySelector('link')?.textContent || '';
                     const pubDate = item.querySelector('pubDate')?.textContent || '';
                     
-                    // Extract audio URL - try multiple methods
-                    const enclosure = item.querySelector('enclosure');
-                    let audioUrl = '';
-                    
-                    // Method 1: Standard enclosure tag
-                    if (enclosure) {
-                        audioUrl = enclosure.getAttribute('url') || '';
-                        if (i < 3) {
-                            console.log(`Enclosure found for episode ${items.length - i}:`, audioUrl);
-                        }
-                    }
-                    
-                    // Method 2: If we have an AudioBoom link, construct the MP3 URL
-                    if (!audioUrl && link && link.includes('audioboom.com/posts/')) {
-                        const match = link.match(/posts\/(\d+)/);
-                        if (match) {
-                            const postId = match[1];
-                            // Try AudioBoom's direct MP3 format
-                            audioUrl = `https://audioboom.com/posts/${postId}.mp3`;
-                            if (i < 3) {
-                                console.log(`Constructed AudioBoom URL for episode ${items.length - i}:`, audioUrl);
-                            }
-                        }
-                    }
-                    
-                    // Method 3: Check for media:content or other media tags
-                    if (!audioUrl) {
-                        // Look for any element with 'media' in the tag name
-                        const allElements = item.getElementsByTagName('*');
-                        for (let el of allElements) {
-                            if (el.tagName.toLowerCase().includes('media') || 
-                                el.tagName.toLowerCase().includes('content')) {
-                                const url = el.getAttribute('url');
-                                if (url && (url.includes('.mp3') || url.includes('audio'))) {
-                                    audioUrl = url;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Method 4: Check guid if it contains audio URL
-                    if (!audioUrl) {
-                        const guid = item.querySelector('guid')?.textContent || '';
-                        if (guid.includes('.mp3') || guid.includes('/audio/')) {
-                            audioUrl = guid;
-                        }
-                    }
-                    
-                    // Log what we found for first few episodes
-                    if (i < 5) {
-                        console.log(`Episode ${items.length - i} audio detection:`, {
-                            hasEnclosure: !!enclosure,
-                            link: link,
-                            audioUrl: audioUrl,
-                            method: audioUrl ? (enclosure ? 'enclosure' : 'constructed') : 'none'
-                        });
-                    }
-                    
                     // Clean up description (remove HTML)
                     const cleanDescription = description
                         .replace(/<[^>]*>/g, '')
@@ -3301,9 +3252,12 @@
                         .replace(/&gt;/g, '>')
                         .replace(/&quot;/g, '"')
                         .replace(/&#39;/g, "'")
+                        .replace(/&#8217;/g, "'")
+                        .replace(/&#8220;/g, '"')
+                        .replace(/&#8221;/g, '"')
                         .trim();
                     
-                    // Extract episode number from title
+                    // Extract episode number from title - be more flexible
                     let episodeNumber = null;
                     
                     // Try different patterns to match episode numbers
@@ -3313,7 +3267,8 @@
                         /Ep\.?\s*(\d+)/i,
                         /#(\d+)/,
                         /(\d+)\s*-/,
-                        /^(\d+)\./
+                        /^(\d+)\./,
+                        /^(\d+)\s/
                     ];
                     
                     for (const pattern of patterns) {
@@ -3329,27 +3284,35 @@
                                       title.toLowerCase().includes('mini-sode') ||
                                       title.toLowerCase().includes('patreon');
                     
-                    if (!episodeNumber && !isMinisode) {
-                        // Use position-based numbering for main episodes
-                        episodeNumber = items.length - i;
-                    }
-                    
-                    // Skip minisodes (optional - remove this if you want to include them)
                     if (isMinisode) {
                         continue;
                     }
                     
-                    // Create searchable text - make it more comprehensive
+                    // If still no number, use position
+                    if (!episodeNumber) {
+                        episodeNumber = items.length - i;
+                    }
+                    
+                    // Create searchable text
                     const searchText = `${title} ${cleanDescription} episode ${episodeNumber}`.toLowerCase();
+                    
+                    // Log first few episodes to debug
+                    if (i < 3) {
+                        console.log(`Episode ${episodeNumber}:`, {
+                            title: title,
+                            descriptionPreview: cleanDescription.substring(0, 100) + '...',
+                            link: link
+                        });
+                    }
                     
                     // Add to database
                     EPISODE_DATABASE.push({
                         number: episodeNumber,
                         title: title,
-                        description: cleanDescription.substring(0, 500), // Keep more description
+                        description: cleanDescription.substring(0, 500),
                         fullDescription: cleanDescription,
                         link: link,
-                        audioUrl: audioUrl,
+                        audioUrl: '', // AudioBoom doesn't provide direct MP3s in RSS
                         spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati ' + title)}`,
                         pubDate: pubDate,
                         searchText: searchText
@@ -3361,17 +3324,10 @@
                 
                 console.log(`✓ Episode database populated with ${EPISODE_DATABASE.length} episodes`);
                 
-                // Check how many episodes have audio URLs
-                const episodesWithAudio = EPISODE_DATABASE.filter(ep => ep.audioUrl).length;
-                console.log(`Episodes with audio URLs: ${episodesWithAudio} out of ${EPISODE_DATABASE.length}`);
-                
-                if (EPISODE_DATABASE.length > 0) {
-                    console.log('Sample episode:', {
-                        number: EPISODE_DATABASE[0].number,
-                        title: EPISODE_DATABASE[0].title,
-                        hasAudio: !!EPISODE_DATABASE[0].audioUrl,
-                        audioUrl: EPISODE_DATABASE[0].audioUrl
-                    });
+                if (EPISODE_DATABASE.length > 0 && EPISODE_DATABASE[0].title !== 'Episode ' + EPISODE_DATABASE[0].number) {
+                    console.log('✓ Episodes have proper titles');
+                } else {
+                    console.log('⚠ Episodes may be using fallback titles');
                 }
                 
                 // Update total episodes count
@@ -3390,30 +3346,22 @@
             }
         }
 
-        // Create fallback database with AudioBoom direct links
+        // Create fallback database
         function createFallbackDatabase() {
             EPISODE_DATABASE = [];
             
-            // For fallback, we'll try to create reasonable AudioBoom links
-            // These are estimates based on typical AudioBoom URL patterns
             for (let i = TOTAL_EPISODES; i >= 1; i--) {
-                // Estimate post ID based on episode number
-                // This is a rough estimate - actual IDs will vary
-                const estimatedPostId = 8543321 + ((302 - i) * 2000); // Rough estimate
-                
                 EPISODE_DATABASE.push({
                     number: i,
                     title: `Episode ${i}`,
-                    description: 'Click below to stream this episode.',
+                    description: 'Episode details unavailable. Click to search on Spotify.',
                     fullDescription: '',
-                    link: `https://audioboom.com/posts/${estimatedPostId}`,
-                    audioUrl: '', // Don't assume direct MP3 works
+                    link: 'https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP',
+                    audioUrl: '',
                     spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + i)}`,
                     searchText: `episode ${i}`
                 });
             }
-            
-            console.log('Fallback database created with estimated AudioBoom links');
         }
 
         // Load episode from search results - scrolls to machine and loads it there
@@ -3455,9 +3403,9 @@
                 const fallbackEpisode = {
                     number: episodeNumber,
                     title: `Episode ${episodeNumber}`,
-                    description: 'Loading episode information from AudioBoom...',
+                    description: 'Episode details not available in database.',
                     audioUrl: '',
-                    link: `https://audioboom.com/channels/5031584`,
+                    link: '',
                     spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + episodeNumber)}`
                 };
                 showEpisodeModal(fallbackEpisode);
@@ -3473,116 +3421,125 @@
             // Show loading message
             showTerminalMessage(`LOADING EPISODE ${episode.number}...`);
             
-            // Always use the episode result area, never create a popup
             const episodeResult = document.getElementById('episodeResult');
             const resultContent = episodeResult.querySelector('.result-content');
             
-            if (!episodeResult || !resultContent) {
-                console.error('Episode result area not found!');
-                return;
-            }
-            
-            // Try to create audio player based on what we have
-            let audioPlayerHTML = '';
-            
-            // Always prefer AudioBoom embed if we have the link
+            // Always try AudioBoom embed first if we have a link
             if (episode.link && episode.link.includes('audioboom.com/posts/')) {
+                // Extract the episode ID from the AudioBoom link
                 const match = episode.link.match(/posts\/(\d+)/);
                 if (match) {
                     const episodeId = match[1];
-                    console.log(`Loading AudioBoom embed for Episode ${episode.number}, ID: ${episodeId}`);
-                    // Use AudioBoom's official embed iframe
-                    audioPlayerHTML = `
+                    
+                    resultContent.innerHTML = `
+                        <div class="result-number">Episode #${episode.number}</div>
+                        <h3 style="color: #fff; margin: 20px 0; font-size: 24px;">${episode.title}</h3>
+                        <p style="color: #ccc; margin-bottom: 20px; line-height: 1.6;">${episode.description}</p>
+                        
                         <div style="background: #000; border: 2px solid var(--neon-green); padding: 20px; margin: 20px 0;">
                             <div style="color: var(--neon-green); font-size: 12px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">
                                 ▶ STREAMING FROM AUDIOBOOM
                             </div>
                             <iframe src="https://embeds.audioboom.com/posts/${episodeId}/embed/v4" 
-                                    style="width: 100%; height: 180px; border: none; background: #000;"
-                                    title="Chilluminati Episode ${episode.number}"
-                                    allowtransparency="true">
+                                    style="width: 100%; height: 300px; border: none; background: transparent;"
+                                    allow="autoplay">
                             </iframe>
                         </div>
+                        
+                        <div class="result-buttons" style="margin-top: 20px;">
+                            <button class="vhs-button" onclick="spinForEpisode()">
+                                SPIN AGAIN
+                            </button>
+                            <a href="${episode.link}" target="_blank" class="vhs-button">
+                                OPEN IN AUDIOBOOM
+                            </a>
+                        </div>
                     `;
+                    
+                    // Make sure the result is visible
+                    episodeResult.style.display = 'block';
+                    episodeResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
                 } else {
-                    console.log(`Could not extract AudioBoom ID from: ${episode.link}`);
+                    // Couldn't extract ID, show fallback
+                    showFallbackPlayer(episode);
                 }
             } else if (episode.audioUrl) {
-                console.log(`Using direct audio URL for Episode ${episode.number}: ${episode.audioUrl}`);
-                // Fallback to direct audio URL if we have one
-                audioPlayerHTML = `
-                    <div style="background: #000; border: 2px solid var(--vhs-blue); padding: 20px; margin: 20px 0;">
-                        <div style="color: var(--vhs-blue); font-size: 12px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">
+                // We have a direct audio URL
+                resultContent.innerHTML = `
+                    <div class="result-number">Episode #${episode.number}</div>
+                    <h3 style="color: #fff; margin: 20px 0; font-size: 24px;">${episode.title}</h3>
+                    <p style="color: #ccc; margin-bottom: 20px; line-height: 1.6;">${episode.description}</p>
+                    
+                    <div style="background: #000; border: 2px solid var(--neon-green); padding: 20px; margin: 20px 0;">
+                        <div style="color: var(--neon-green); font-size: 12px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">
                             ▶ DIRECT AUDIO STREAM
                         </div>
-                        <audio controls style="width: 100%; filter: sepia(1) saturate(2) hue-rotate(90deg);">
+                        <audio controls style="width: 100%; filter: sepia(1) saturate(2) hue-rotate(90deg);" autoplay>
                             <source src="${episode.audioUrl}" type="audio/mpeg">
                             Your browser does not support the audio element.
                         </audio>
                     </div>
-                `;
-            } else {
-                console.log(`No audio source found for Episode ${episode.number}`);
-            }
-            
-            // If still no audio player, show a message
-            if (!audioPlayerHTML) {
-                audioPlayerHTML = `
-                    <div style="background: rgba(255, 0, 64, 0.1); border: 1px solid var(--vhs-red); padding: 20px; margin: 20px 0;">
-                        <p style="color: var(--vhs-red); text-align: center; margin: 0;">
-                            AUDIO PLAYER NOT AVAILABLE - USE EXTERNAL LINKS
-                        </p>
-                        <p style="color: #999; text-align: center; margin: 10px 0 0 0; font-size: 12px;">
-                            The RSS feed may not include AudioBoom post IDs. Try the links below.
-                        </p>
+                    
+                    <div class="result-buttons" style="margin-top: 20px;">
+                        <button class="vhs-button" onclick="spinForEpisode()">
+                            SPIN AGAIN
+                        </button>
+                        ${episode.link ? `
+                            <a href="${episode.link}" target="_blank" class="vhs-button">
+                                VIEW ON AUDIOBOOM
+                            </a>
+                        ` : ''}
                     </div>
                 `;
-            }
-            
-            // Update the result content
-            resultContent.innerHTML = `
-                <div class="result-number">Episode #${episode.number}</div>
-                <h3 style="color: #fff; margin: 20px 0; font-size: 24px;">${episode.title.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</h3>
-                <p style="color: #ccc; margin-bottom: 20px; line-height: 1.6; max-height: 200px; overflow-y: auto;">${episode.description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
                 
-                ${audioPlayerHTML}
-                
-                <div class="result-buttons" style="margin-top: 20px;">
-                    <button class="vhs-button" onclick="spinForEpisode()">
-                        SPIN FOR ANOTHER
-                    </button>
-                    ${episode.link ? `
-                        <a href="${episode.link}" target="_blank" class="vhs-button">
-                            OPEN FULL PAGE
-                        </a>
-                    ` : ''}
-                    <a href="https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + episode.number)}" target="_blank" class="vhs-button">
-                        FIND ON SPOTIFY
-                    </a>
-                </div>
-            `;
-            
-            // Make sure the result is visible and scroll to it
-            episodeResult.style.display = 'block';
-            
-            // Update the machine display to show the loaded episode
-            const slotNumber = document.getElementById('slotNumber');
-            const slotTitle = document.getElementById('slotTitle');
-            if (slotNumber && slotTitle) {
-                slotNumber.textContent = episode.number;
-                slotTitle.textContent = 'EPISODE LOADED';
-            }
-            
-            // Smooth scroll to the result
-            setTimeout(() => {
+                episodeResult.style.display = 'block';
                 episodeResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
+            } else {
+                // No audio available
+                showFallbackPlayer(episode);
+            }
             
             // Play load sound
             if (soundEnabled) {
                 createSound(523, 0.1, 'sine', 0.05);
                 setTimeout(() => createSound(659, 0.1, 'sine', 0.05), 100);
             }
+        }
+        
+        // Helper function for fallback player
+        function showFallbackPlayer(episode) {
+            const episodeResult = document.getElementById('episodeResult');
+            const resultContent = episodeResult.querySelector('.result-content');
+            
+            resultContent.innerHTML = `
+                <div class="result-number">Episode #${episode.number}</div>
+                <h3 style="color: #fff; margin: 20px 0; font-size: 24px;">${episode.title}</h3>
+                <p style="color: #ccc; margin-bottom: 20px; line-height: 1.6;">${episode.description}</p>
+                
+                <div style="background: rgba(255, 0, 64, 0.1); border: 1px solid var(--vhs-red); padding: 20px; margin: 20px 0;">
+                    <p style="color: var(--vhs-red); text-align: center; margin: 0;">
+                        DIRECT STREAMING NOT AVAILABLE - USE EXTERNAL LINKS
+                    </p>
+                </div>
+                
+                <div class="result-buttons" style="margin-top: 20px;">
+                    <button class="vhs-button" onclick="spinForEpisode()">
+                        SPIN AGAIN
+                    </button>
+                    ${episode.link ? `
+                        <a href="${episode.link}" target="_blank" class="vhs-button">
+                            LISTEN ON AUDIOBOOM
+                        </a>
+                    ` : ''}
+                    <a href="https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + episode.number)}" target="_blank" class="vhs-button">
+                        SEARCH ON SPOTIFY
+                    </a>
+                </div>
+            `;
+            
+            episodeResult.style.display = 'block';
+            episodeResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         // Fixed search function that properly searches by keywords
@@ -3618,19 +3575,18 @@
                         return episode.number === parseInt(query);
                     }
                     
-                    // Otherwise search in title and description
-                    const titleMatch = episode.title.toLowerCase().includes(query);
-                    const descriptionMatch = episode.description.toLowerCase().includes(query);
-                    const searchTextMatch = episode.searchText.includes(query);
+                    // Create one big searchable string for each episode
+                    const searchableText = `${episode.title} ${episode.description} episode ${episode.number}`.toLowerCase();
                     
-                    return titleMatch || descriptionMatch || searchTextMatch;
+                    // Check if the query appears anywhere in the searchable text
+                    return searchableText.includes(query);
                 });
                 
                 if (results.length === 0) {
                     searchResults.innerHTML = `
                         <p class="search-status">NO RESULTS FOUND FOR "${query.toUpperCase()}"</p>
                         <p class="search-status" style="margin-top: 10px; font-size: 12px;">
-                            Try different keywords, episode numbers, or shorter search terms
+                            Try different keywords like: bigfoot, ghost, ufo, alien, haunted, etc.
                         </p>
                     `;
                 } else {
@@ -3638,15 +3594,18 @@
                     results.sort((a, b) => (b.number || 0) - (a.number || 0));
                     
                     // Build results HTML
-                    let resultsHTML = `<p class="search-status">FOUND ${results.length} RESULT${results.length > 1 ? 'S' : ''}</p>`;
+                    let resultsHTML = `<p class="search-status">FOUND ${results.length} RESULT${results.length > 1 ? 'S' : ''} FOR "${query.toUpperCase()}"</p>`;
                     
                     // Show max 10 results
                     results.slice(0, 10).forEach(episode => {
+                        // Highlight the search term in the description
+                        let displayDescription = episode.description.substring(0, 150);
+                        
                         resultsHTML += `
                             <div class="search-result-item" onclick="loadEpisodeFromSearch(${episode.number})" style="cursor: pointer;">
                                 <div class="result-episode-number">EPISODE ${episode.number}</div>
                                 <div class="result-episode-title">${episode.title}</div>
-                                <div class="result-episode-topics">${episode.description.substring(0, 150)}...</div>
+                                <div class="result-episode-topics">${displayDescription}...</div>
                             </div>
                         `;
                     });
@@ -3672,18 +3631,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Populate database after a short delay
             setTimeout(() => {
-                console.log('🎙️ CHILLUMINATI WEBSITE LOADED');
-                console.log('Loading episode database from RSS feed...');
                 populateEpisodeDatabase().then(success => {
                     if (success) {
                         showTerminalMessage('EPISODE DATABASE LOADED');
-                        console.log('✅ Episode database ready!');
-                        console.log('💡 TIP: Type debugRSS() in console to check RSS feed details');
-                        console.log('💡 TIP: Type testEpisode(14) to test a specific episode');
                     } else {
                         showTerminalMessage('USING FALLBACK DATABASE');
-                        console.log('⚠️ RSS feed failed, using fallback database');
-                        console.log('💡 TIP: Type debugRSS() to see what went wrong');
                     }
                 });
             }, 1500);
@@ -3717,71 +3669,6 @@
                 machineArchiveText.textContent = `Execute the randomizer and discover an episode from our ${TOTAL_EPISODES}+ archive.`;
             }
         }
-        
-        // Function to fetch and count episodes from RSS feed
-        async function updateEpisodeCount() {
-            console.log('Attempting to fetch episode count...');
-            
-            // Try multiple proxy services in order
-            const proxyServices = [
-                {
-                    name: 'allorigins',
-                    url: 'https://api.allorigins.win/get?url=',
-                    parser: async (response) => {
-                        const data = await response.json();
-                        return data.contents;
-                    }
-                }
-            ];
-            
-            const rssUrl = 'https://audioboom.com/channels/5031584.rss';
-            
-            for (const proxy of proxyServices) {
-                try {
-                    console.log(`Trying ${proxy.name}...`);
-                    const response = await fetch(proxy.url + encodeURIComponent(rssUrl));
-                    
-                    if (!response.ok) {
-                        throw new Error(`${proxy.name} returned ${response.status}`);
-                    }
-                    
-                    const xmlText = await proxy.parser(response);
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-                    
-                    // Check for parse errors
-                    const parseError = xmlDoc.querySelector('parsererror');
-                    if (parseError) {
-                        throw new Error('Failed to parse RSS feed');
-                    }
-                    
-                    // Count all <item> tags in the RSS feed
-                    const items = xmlDoc.getElementsByTagName('item');
-                    console.log(`Found ${items.length} total items in RSS feed`);
-                    
-                    if (items.length > 0) {
-                        TOTAL_EPISODES = items.length;
-                        
-                        // Update all references to episode count
-                        updateEpisodeReferences();
-                        
-                        // Log success
-                        console.log(`✓ Episode count updated! Found ${TOTAL_EPISODES} episodes using ${proxy.name}`);
-                        return; // Success, exit the function
-                    }
-                } catch (error) {
-                    console.log(`${proxy.name} failed:`, error.message);
-                    // Continue to next proxy
-                }
-            }
-            
-            // If all proxies failed
-            console.log('All proxy services failed. Using default count of', TOTAL_EPISODES);
-            console.log('This is usually due to CORS restrictions. The episode count will remain at the default value.');
-            
-            // Still update references even with default count for consistency
-            updateEpisodeReferences();
-        }
 
         // Loading Screen
         window.addEventListener('load', function() {
@@ -3802,9 +3689,6 @@
                     loadingProgress.style.width = progress + '%';
                 }
             }, 200);
-            
-            // Start loading episode data immediately
-            updateEpisodeCount();
         });
 
         // Mobile Menu Toggle
@@ -4046,10 +3930,9 @@
                     // Pick a random episode from the database
                     let finalEpisode;
                     if (EPISODE_DATABASE.length > 0) {
-                        // Prefer newer episodes (first 100) as they're more likely to have working links
-                        const recentEpisodes = EPISODE_DATABASE.slice(0, Math.min(100, EPISODE_DATABASE.length));
-                        const randomIndex = Math.floor(Math.random() * recentEpisodes.length);
-                        finalEpisode = recentEpisodes[randomIndex].number;
+                        // Pick from actual episodes
+                        const randomIndex = Math.floor(Math.random() * EPISODE_DATABASE.length);
+                        finalEpisode = EPISODE_DATABASE[randomIndex].number;
                     } else {
                         // Fallback to random number
                         finalEpisode = Math.floor(Math.random() * TOTAL_EPISODES) + 1;
