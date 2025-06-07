@@ -2334,13 +2334,6 @@
             oscillator.stop(audioContext.currentTime + duration);
         }
         
-        // VHS click sound
-        function playClickSound() {
-            if (!soundEnabled) return;
-            createSound(200, 0.05, 'square', 0.03);
-            setTimeout(() => createSound(150, 0.05, 'square', 0.02), 20);
-        }
-        
         // Static burst
         function playStaticSound() {
             if (!soundEnabled) return;
@@ -2360,12 +2353,6 @@
             whiteNoise.start();
         }
         
-        // Hover beep
-        function playHoverSound() {
-            if (!soundEnabled) return;
-            createSound(800, 0.03, 'sine', 0.02);
-        }
-        
         // Toggle sound
         function toggleSound() {
             soundEnabled = !soundEnabled;
@@ -2377,7 +2364,6 @@
                 soundIcon.textContent = '🔊';
                 soundText.textContent = 'SOUND: ON';
                 soundToggle.classList.remove('muted');
-                playClickSound();
             } else {
                 soundIcon.textContent = '🔇';
                 soundText.textContent = 'SOUND: OFF';
@@ -2387,12 +2373,6 @@
         
         // Add sound effects to interactive elements
         document.addEventListener('DOMContentLoaded', function() {
-            // Click sounds for buttons and links
-            document.querySelectorAll('button, .vhs-button, .nav-links a').forEach(element => {
-                element.addEventListener('click', playClickSound);
-                element.addEventListener('mouseenter', playHoverSound);
-            });
-            
             // Special sound for spin button
             const spinButton = document.querySelector('.spin-button');
             if (spinButton) {
@@ -2512,23 +2492,12 @@
                 document.body.style.animation = '';
             }, 2000);
             
-            // Play a simple melody using Web Audio API
-            const melody = [
-                { freq: 440, duration: 0.2 },   // A
-                { freq: 494, duration: 0.2 },   // B
-                { freq: 523, duration: 0.2 },   // C
-                { freq: 587, duration: 0.2 },   // D
-                { freq: 659, duration: 0.4 },   // E
-                { freq: 587, duration: 0.2 },   // D
-                { freq: 523, duration: 0.4 }    // C
-            ];
-            
-            let delay = 0;
-            melody.forEach(note => {
-                setTimeout(() => {
-                    createSound(note.freq, note.duration, 'sine', 0.1);
-                }, delay * 1000);
-                delay += note.duration;
+            // Play the actual theme song MP3
+            const audio = new Audio('./audio/theme.mp3');
+            audio.volume = 0.5; // 50% volume to keep it reasonable
+            audio.play().catch(err => {
+                console.log('Could not play theme song:', err);
+                showTerminalMessage('THEME SONG FILE NOT FOUND');
             });
         }
         
@@ -3056,7 +3025,7 @@
             }
         }, 10000);
 
-        // Click on logo for secret - Updated with sound
+        // Click on logo for secret - Updated with clearer hint
         let logoClicks = 0;
         const logo = document.querySelector('.logo');
         if (logo) {
@@ -3069,7 +3038,14 @@
                     if (soundEnabled) playStaticSound();
                     logoClicks = 0;
                     setTimeout(() => {
-                        document.getElementById('secretMessage').innerHTML = 'You\'ve discovered the hidden frequency! Tune in at midnight for secret transmissions...<br><br><small>Type "theme" anywhere to hear something special...</small>';
+                        document.getElementById('secretMessage').innerHTML = `
+                            <strong>HIDDEN FREQUENCY DISCOVERED!</strong><br><br>
+                            You've unlocked access to classified transmissions.<br><br>
+                            <span style="color: var(--neon-green); font-size: 16px;">
+                                TYPE THE WORD "THEME" TO ACTIVATE AUDIO PROTOCOL
+                            </span><br><br>
+                            <small style="opacity: 0.7;">Just type it anywhere on the page...</small>
+                        `;
                         document.getElementById('secretCode').classList.add('active');
                         if (soundEnabled) {
                             // Play discovery sound
@@ -3078,8 +3054,6 @@
                             setTimeout(() => createSound(784, 0.4, 'sine', 0.05), 500);
                         }
                     }, 1000);
-                } else {
-                    if (soundEnabled) playClickSound();
                 }
             });
         }
