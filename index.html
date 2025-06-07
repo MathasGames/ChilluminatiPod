@@ -54,10 +54,12 @@
             --vhs-red: #FF0040;
             --dark-bg: #0a0a0a;
             --static-bg: #1a1a1a;
+            --worn-yellow: #FFFACD;
         }
 
         /* Performance mode toggle */
         body.performance-mode .cctv-overlay,
+        body.performance-mode .sighting-tracker,
         body.performance-mode::before,
         body.performance-mode::after {
             display: none;
@@ -95,6 +97,21 @@
             50% { opacity: 0.3; }
         }
 
+        @keyframes theme-pulse {
+            0%, 100% { 
+                filter: hue-rotate(0deg) brightness(1);
+            }
+            25% { 
+                filter: hue-rotate(90deg) brightness(1.2);
+            }
+            50% { 
+                filter: hue-rotate(180deg) brightness(1.1);
+            }
+            75% { 
+                filter: hue-rotate(270deg) brightness(1.2);
+            }
+        }
+
         @keyframes typewriter {
             from { width: 0; }
             to { width: 100%; }
@@ -107,9 +124,42 @@
             overflow-x: hidden;
             position: relative;
             min-height: 100vh;
+            transition: transform 0.1s ease-out, filter 0.1s ease-out;
         }
 
-        /* VHS Static Overlay */
+        /* VHS Worn Effect - More grain and distortion */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E"),
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0,
+                    rgba(255, 255, 255, 0.03) 1px,
+                    transparent 2px,
+                    transparent 3px
+                );
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.15;
+            mix-blend-mode: overlay;
+            animation: vhs-tracking 5s infinite;
+        }
+
+        @keyframes vhs-tracking {
+            0%, 100% { transform: translateY(0); }
+            20% { transform: translateY(2px); }
+            40% { transform: translateY(-1px); }
+            60% { transform: translateY(3px); }
+            80% { transform: translateY(-2px); }
+        }
+
+        /* VHS Worn Overlay */
         body::before {
             content: "";
             position: fixed;
@@ -127,21 +177,6 @@
             z-index: 1;
             pointer-events: none;
             animation: scan-lines 8s linear infinite;
-        }
-
-        /* VHS Noise Effect */
-        body::after {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
-            pointer-events: none;
-            z-index: 1;
-            opacity: 0.1;
-            mix-blend-mode: overlay;
         }
 
         .container {
@@ -387,6 +422,7 @@
             flex-wrap: wrap;
         }
 
+        /* Add worn/aged effect to buttons */
         .vhs-button {
             padding: 15px 30px;
             background: transparent;
@@ -399,6 +435,10 @@
             overflow: hidden;
             transition: all 0.3s;
             cursor: pointer;
+            box-shadow: 
+                2px 2px 0 rgba(0, 0, 0, 0.5),
+                inset 0 0 20px rgba(0, 0, 0, 0.3);
+            filter: contrast(0.9) brightness(0.95);
         }
 
         .vhs-button:hover {
@@ -601,6 +641,7 @@
             50% { opacity: 0.5; }
         }
 
+        /* Worn borders effect */
         .episode-card {
             background: rgba(0, 0, 0, 0.8);
             border: 2px solid var(--neon-green);
@@ -608,6 +649,27 @@
             margin-bottom: 30px;
             position: relative;
             overflow: hidden;
+            box-shadow: 
+                inset 0 0 50px rgba(0, 0, 0, 0.5),
+                0 0 20px rgba(0, 0, 0, 0.8);
+            filter: contrast(0.95);
+        }
+
+        .episode-card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 255, 255, 0.01) 2px,
+                rgba(255, 255, 255, 0.01) 4px
+            );
+            pointer-events: none;
         }
 
         .episode-card::before {
@@ -946,6 +1008,7 @@
             text-align: center;
         }
 
+        /* Machine display with worn effect */
         .machine-display {
             background: #000;
             border: 3px solid var(--vhs-blue);
@@ -956,7 +1019,32 @@
             overflow: hidden;
             box-shadow: 
                 0 0 50px rgba(0, 255, 255, 0.3),
-                inset 0 0 50px rgba(0, 255, 255, 0.1);
+                inset 0 0 50px rgba(0, 255, 255, 0.1),
+                inset 0 0 100px rgba(0, 0, 0, 0.5);
+            filter: contrast(0.95) brightness(0.98);
+        }
+
+        .machine-display::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.01) 10px,
+                rgba(255, 255, 255, 0.01) 20px
+            );
+            animation: vhs-diagonal 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes vhs-diagonal {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
         }
 
         .machine-screen {
@@ -1214,10 +1302,130 @@
             flex-wrap: wrap;
         }
 
+        /* Live Sighting Tracker */
+        .sighting-tracker {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border-top: 2px solid var(--vhs-red);
+            padding: 8px 0;
+            z-index: 998;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--vhs-red);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 -5px 20px rgba(255, 0, 64, 0.3);
+            animation: tracker-flicker 10s infinite;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .sighting-tracker.paused {
+            opacity: 0.5;
+        }
+
+        .sighting-tracker.paused .tracker-text {
+            animation-play-state: paused;
+        }
+
+        @keyframes tracker-flicker {
+            0%, 100% { opacity: 0.9; }
+            92% { opacity: 0.9; }
+            93% { opacity: 0.7; }
+            94% { opacity: 0.9; }
+            96% { opacity: 0.8; }
+            97% { opacity: 0.9; }
+        }
+
+        .tracker-label {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--vhs-red);
+            color: #000;
+            padding: 2px 8px;
+            font-weight: bold;
+            z-index: 2;
+            animation: pulse 2s infinite;
+        }
+
+        .sighting-tracker.paused .tracker-label {
+            background: #666;
+            animation: none;
+        }
+
+        .tracker-content {
+            overflow: hidden;
+            padding-left: 140px;
+            padding-right: 20px;
+        }
+
+        .tracker-text {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scroll-left 30s linear infinite;
+        }
+
+        @keyframes scroll-left {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .sighting-item {
+            padding: 0 50px;
+            position: relative;
+        }
+
+        .sighting-item::before {
+            content: '▸▸▸';
+            position: absolute;
+            left: 20px;
+            color: var(--vhs-red);
+            opacity: 0.5;
+        }
+
+        /* Sound Toggle */
+        .sound-toggle {
+            position: fixed;
+            bottom: 60px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #333;
+            padding: 10px;
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sound-toggle:hover {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .sound-toggle.muted {
+            color: var(--vhs-red);
+            border-color: var(--vhs-red);
+        }
+
+        #soundIcon {
+            font-size: 16px;
+        }
+
         /* Performance Mode Toggle */
         .performance-toggle {
             position: fixed;
-            bottom: 20px;
+            bottom: 110px;
             left: 20px;
             background: rgba(0, 0, 0, 0.8);
             border: 1px solid #333;
@@ -1311,10 +1519,10 @@
             border-top: 1px solid #333;
         }
 
-        /* VHS Date/Time Stamp - CCTV Style */
+        /* VHS timestamp with worn effect */
         .vhs-timestamp {
             position: fixed;
-            bottom: 20px;
+            bottom: 40px;
             right: 20px;
             font-family: 'Courier New', monospace;
             color: var(--neon-green);
@@ -1324,6 +1532,23 @@
             background: rgba(0,0,0,0.8);
             padding: 5px 10px;
             border: 1px solid #333;
+            filter: contrast(0.9) brightness(1.1);
+            animation: timestamp-glitch 15s infinite;
+        }
+
+        @keyframes timestamp-glitch {
+            0%, 100% { 
+                filter: contrast(0.9) brightness(1.1);
+                transform: none;
+            }
+            95% { 
+                filter: contrast(1.5) brightness(1.3);
+                transform: translateX(2px);
+            }
+            96% { 
+                filter: contrast(0.5) brightness(0.8);
+                transform: translateX(-1px);
+            }
         }
 
         .vhs-timestamp::before {
@@ -1613,17 +1838,43 @@
 
             /* Fixed elements */
             .performance-toggle {
-                bottom: 80px;
+                bottom: 140px;
                 left: 10px;
                 padding: 8px;
                 font-size: 10px;
             }
 
+            .sound-toggle {
+                bottom: 90px;
+                left: 10px;
+                padding: 8px;
+                font-size: 10px;
+            }
+
+            #soundIcon {
+                font-size: 14px;
+            }
+
             .vhs-timestamp {
-                bottom: 10px;
+                bottom: 60px;
                 right: 10px;
                 font-size: 11px;
                 padding: 3px 6px;
+            }
+
+            /* Sighting tracker mobile */
+            .sighting-tracker {
+                font-size: 10px;
+                padding: 6px 0;
+            }
+
+            .tracker-label {
+                font-size: 9px;
+                padding: 2px 6px;
+            }
+
+            .tracker-content {
+                padding-left: 110px;
             }
 
             .recording-indicator {
@@ -1742,7 +1993,7 @@
             }
         }
 
-        /* Ensure desktop nav display */
+        /* Desktop adjustments */
         @media (min-width: 769px) {
             .nav-links {
                 display: flex !important;
@@ -1761,6 +2012,22 @@
 
     <!-- CCTV Grid Overlay -->
     <div class="cctv-overlay"></div>
+    
+    <!-- Live Sighting Tracker -->
+    <div class="sighting-tracker" id="sightingTracker">
+        <div class="tracker-label">[ LIVE SIGHTINGS ]</div>
+        <div class="tracker-content">
+            <div class="tracker-text" id="trackerText">
+                <span class="sighting-item">INITIALIZING PARANORMAL ACTIVITY MONITOR...</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sound Toggle -->
+    <div class="sound-toggle" id="soundToggle" onclick="toggleSound()">
+        <span id="soundIcon">🔊</span>
+        <span id="soundText">SOUND: ON</span>
+    </div>
     
     <!-- Performance Mode Toggle -->
     <div class="performance-toggle" onclick="togglePerformanceMode()">
@@ -2035,7 +2302,7 @@
             </div>
             <div class="copyright">
                 <p>© 2025 CHILLUMINATI PODCAST | TRANSMISSION COMPLETE</p>
-                <p style="margin-top: 10px; font-size: 10px; color: #333;">Try: ↑↑↓↓←→←→BA</p>
+                <p style="margin-top: 10px; font-size: 10px; color: #333;">Try: ↑↑↓↓←→←→BA | Click logo 5x | Type "theme"</p>
             </div>
         </div>
     </footer>
@@ -2046,6 +2313,225 @@
     </div>
 
     <script>
+        // Sound System
+        let soundEnabled = true;
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Create subtle sound effects
+        function createSound(frequency, duration, type = 'sine', volume = 0.1) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        // VHS click sound
+        function playClickSound() {
+            if (!soundEnabled) return;
+            createSound(200, 0.05, 'square', 0.03);
+            setTimeout(() => createSound(150, 0.05, 'square', 0.02), 20);
+        }
+        
+        // Static burst
+        function playStaticSound() {
+            if (!soundEnabled) return;
+            const whiteNoise = audioContext.createBufferSource();
+            const buffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.1, audioContext.sampleRate);
+            const output = buffer.getChannelData(0);
+            
+            for (let i = 0; i < buffer.length; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+            
+            whiteNoise.buffer = buffer;
+            const gainNode = audioContext.createGain();
+            whiteNoise.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            gainNode.gain.value = 0.02;
+            whiteNoise.start();
+        }
+        
+        // Hover beep
+        function playHoverSound() {
+            if (!soundEnabled) return;
+            createSound(800, 0.03, 'sine', 0.02);
+        }
+        
+        // Toggle sound
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const soundIcon = document.getElementById('soundIcon');
+            const soundText = document.getElementById('soundText');
+            const soundToggle = document.getElementById('soundToggle');
+            
+            if (soundEnabled) {
+                soundIcon.textContent = '🔊';
+                soundText.textContent = 'SOUND: ON';
+                soundToggle.classList.remove('muted');
+                playClickSound();
+            } else {
+                soundIcon.textContent = '🔇';
+                soundText.textContent = 'SOUND: OFF';
+                soundToggle.classList.add('muted');
+            }
+        }
+        
+        // Add sound effects to interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Click sounds for buttons and links
+            document.querySelectorAll('button, .vhs-button, .nav-links a').forEach(element => {
+                element.addEventListener('click', playClickSound);
+                element.addEventListener('mouseenter', playHoverSound);
+            });
+            
+            // Special sound for spin button
+            const spinButton = document.querySelector('.spin-button');
+            if (spinButton) {
+                spinButton.addEventListener('click', () => {
+                    if (soundEnabled) {
+                        playStaticSound();
+                        setTimeout(playStaticSound, 100);
+                        setTimeout(playStaticSound, 200);
+                    }
+                });
+            }
+        });
+        
+        // Live Sighting Tracker
+        const sightings = [
+            "BIGFOOT SIGHTING IN OREGON - 3 WITNESSES - LARGE FOOTPRINTS FOUND",
+            "MYSTERIOUS LIGHTS OVER PHOENIX - TRIANGULAR FORMATION - 11:47 PM",
+            "GHOSTLY FIGURE CAPTURED ON CCTV - ABANDONED HOSPITAL - DETROIT, MI",
+            "UFO REPORTED NEAR AREA 51 - SILVER DISC - MOVING AT IMPOSSIBLE SPEEDS",
+            "SKINWALKER ACTIVITY - NAVAJO NATION - LIVESTOCK FOUND MUTILATED",
+            "TIME ANOMALY DETECTED - CLOCKS RUNNING BACKWARDS - BERMUDA TRIANGLE",
+            "MOTHMAN SPOTTED - POINT PLEASANT, WV - RED GLOWING EYES CONFIRMED",
+            "CROP CIRCLES APPEAR OVERNIGHT - WILTSHIRE, UK - COMPLEX PATTERNS",
+            "SHADOW PERSON ENCOUNTER - MULTIPLE REPORTS - CHICAGO SUBURBS",
+            "CHUPACABRA ATTACK - PUERTO RICO - 6 GOATS DRAINED OF BLOOD",
+            "POLTERGEIST ACTIVITY - FLYING OBJECTS - ENFIELD, UK",
+            "BLACK EYED CHILDREN - KNOCKING ON DOORS - ABILENE, TX",
+            "DOGMAN HOWLS RECORDED - MICHIGAN FOREST - HIKERS MISSING",
+            "ALIEN ABDUCTION REPORT - MISSING TIME - ROUTE 66",
+            "WENDIGO TRACKS FOUND - MINNESOTA WILDERNESS - SEARCH PARTY WARNED",
+            "HAUNTED DOLL MOVES ON ITS OWN - CAUGHT ON CAMERA - KEY WEST MUSEUM",
+            "MEN IN BLACK VISIT - WITNESSES INTERROGATED - MEMORIES FUZZY",
+            "JERSEY DEVIL SCREECH HEARD - PINE BARRENS - LIVESTOCK NERVOUS",
+            "DIMENSIONAL PORTAL PHOTOGRAPHED - SEDONA, AZ - HIKERS VANISH",
+            "REPTILIAN SHAPESHIFTER - GOVERNMENT BUILDING - SECURITY FOOTAGE DELETED"
+        ];
+        
+        let currentSightingIndex = 0;
+        let sightingInterval;
+        let sightingPaused = false;
+        
+        function updateSightingTracker() {
+            if (sightingPaused) return;
+            
+            const trackerText = document.getElementById('trackerText');
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            // Create new sighting text
+            const sighting = sightings[currentSightingIndex];
+            const fullText = `[${timeString}] ${sighting}`;
+            
+            // Update the tracker
+            trackerText.innerHTML = `<span class="sighting-item">${fullText}</span>`;
+            
+            // Play subtle notification sound
+            if (soundEnabled && Math.random() < 0.3) {
+                createSound(400, 0.1, 'sine', 0.01);
+            }
+            
+            // Move to next sighting
+            currentSightingIndex = (currentSightingIndex + 1) % sightings.length;
+        }
+        
+        // Pause/resume sighting tracker on click
+        const sightingTracker = document.getElementById('sightingTracker');
+        sightingTracker.addEventListener('click', function() {
+            sightingPaused = !sightingPaused;
+            this.classList.toggle('paused');
+            
+            if (sightingPaused) {
+                showTerminalMessage('SIGHTING TRACKER PAUSED');
+            } else {
+                showTerminalMessage('SIGHTING TRACKER RESUMED');
+                updateSightingTracker();
+            }
+            
+            playClickSound();
+        });
+        
+        // Start sighting tracker after a delay
+        setTimeout(() => {
+            updateSightingTracker();
+            sightingInterval = setInterval(updateSightingTracker, 12000); // Update every 12 seconds
+        }, 3000);
+        
+        // Theme Song Easter Egg
+        let themeEggSequence = [];
+        const themeEggCode = ['t', 'h', 'e', 'm', 'e'];
+        
+        document.addEventListener('keypress', (e) => {
+            themeEggSequence.push(e.key.toLowerCase());
+            if (themeEggSequence.length > themeEggCode.length) {
+                themeEggSequence.shift();
+            }
+            
+            if (themeEggSequence.join('') === themeEggCode.join('')) {
+                playThemeSong();
+                themeEggSequence = [];
+            }
+        });
+        
+        function playThemeSong() {
+            if (!soundEnabled) {
+                showTerminalMessage('ENABLE SOUND TO HEAR THE THEME! 🔇');
+                return;
+            }
+            
+            showTerminalMessage('THEME SONG ACTIVATED! 🎵');
+            
+            // Visual effect
+            document.body.style.animation = 'theme-pulse 2s';
+            setTimeout(() => {
+                document.body.style.animation = '';
+            }, 2000);
+            
+            // Play a simple melody using Web Audio API
+            const melody = [
+                { freq: 440, duration: 0.2 },   // A
+                { freq: 494, duration: 0.2 },   // B
+                { freq: 523, duration: 0.2 },   // C
+                { freq: 587, duration: 0.2 },   // D
+                { freq: 659, duration: 0.4 },   // E
+                { freq: 587, duration: 0.2 },   // D
+                { freq: 523, duration: 0.4 }    // C
+            ];
+            
+            let delay = 0;
+            melody.forEach(note => {
+                setTimeout(() => {
+                    createSound(note.freq, note.duration, 'sine', 0.1);
+                }, delay * 1000);
+                delay += note.duration;
+            });
+        }
+        
         // Global episode count variable
         let TOTAL_EPISODES = 302; // Default fallback value - update this if RSS fetch fails
         
@@ -2547,32 +3033,56 @@
             }, 500);
         }
 
-        // Random "transmission interference"
+        // Random "transmission interference" with sound
         setInterval(() => {
             if (Math.random() < 0.05 && !document.body.classList.contains('performance-mode')) {
                 const overlay = document.querySelector('.cctv-overlay');
                 overlay.style.opacity = '0.1';
+                
+                // Add tracking error effect
+                document.body.style.transform = `translateY(${Math.random() * 4 - 2}px)`;
+                document.body.style.filter = 'blur(1px)';
+                
+                // Play interference sound
+                if (soundEnabled && Math.random() < 0.5) {
+                    playStaticSound();
+                }
+                
                 setTimeout(() => {
                     overlay.style.opacity = '0.03';
+                    document.body.style.transform = 'translateY(0)';
+                    document.body.style.filter = 'none';
                 }, 100);
             }
         }, 10000);
 
-        // Click on logo for secret
+        // Click on logo for secret - Updated with sound
         let logoClicks = 0;
-        document.querySelector('.logo').addEventListener('click', (e) => {
-            e.preventDefault();
-            logoClicks++;
-            
-            if (logoClicks === 5) {
-                showTerminalMessage('INITIATING SECRET PROTOCOL...');
-                logoClicks = 0;
-                setTimeout(() => {
-                    document.getElementById('secretMessage').textContent = 'You\'ve discovered the hidden frequency! Tune in at midnight for secret transmissions...';
-                    document.getElementById('secretCode').classList.add('active');
-                }, 1000);
-            }
-        });
+        const logo = document.querySelector('.logo');
+        if (logo) {
+            logo.addEventListener('click', (e) => {
+                e.preventDefault();
+                logoClicks++;
+                
+                if (logoClicks === 5) {
+                    showTerminalMessage('INITIATING SECRET PROTOCOL...');
+                    if (soundEnabled) playStaticSound();
+                    logoClicks = 0;
+                    setTimeout(() => {
+                        document.getElementById('secretMessage').innerHTML = 'You\'ve discovered the hidden frequency! Tune in at midnight for secret transmissions...<br><br><small>Type "theme" anywhere to hear something special...</small>';
+                        document.getElementById('secretCode').classList.add('active');
+                        if (soundEnabled) {
+                            // Play discovery sound
+                            createSound(523, 0.2, 'sine', 0.05);
+                            setTimeout(() => createSound(659, 0.3, 'sine', 0.05), 200);
+                            setTimeout(() => createSound(784, 0.4, 'sine', 0.05), 500);
+                        }
+                    }, 1000);
+                } else {
+                    if (soundEnabled) playClickSound();
+                }
+            });
+        }
     </script>
 </body>
 </html>
