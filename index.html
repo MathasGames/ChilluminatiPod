@@ -503,6 +503,53 @@
             color: #666;
         }
 
+        /* Corrupted title for hosts section */
+        .corrupted-title {
+            color: #fff !important;
+            position: relative;
+            animation: title-corruption 5s infinite;
+        }
+
+        @keyframes title-corruption {
+            0%, 90%, 100% { 
+                color: #fff;
+                filter: blur(0);
+            }
+            91% { 
+                color: #f00;
+                filter: blur(1px);
+            }
+            92% { 
+                color: #fff;
+                filter: blur(0);
+            }
+            93% { 
+                color: #f00;
+                filter: blur(2px);
+                transform: translateX(-2px);
+            }
+            94% { 
+                color: #fff;
+                filter: blur(0);
+                transform: translateX(2px);
+            }
+            95% { 
+                color: #f00;
+                filter: blur(1px);
+                transform: translateX(0);
+            }
+        }
+
+        .glitch-text {
+            color: #f00 !important;
+            animation: warning-flash 2s infinite;
+        }
+
+        @keyframes warning-flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         .episode-card {
             background: rgba(0, 0, 0, 0.8);
             border: 2px solid var(--neon-green);
@@ -555,7 +602,61 @@
         /* Hosts Section */
         .hosts {
             padding: 80px 0;
-            background: rgba(255, 0, 255, 0.05);
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* VHS static overlay for hosts section */
+        .hosts::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(255, 255, 255, 0.03) 0px,
+                    transparent 1px,
+                    transparent 2px,
+                    rgba(255, 255, 255, 0.03) 3px
+                );
+            animation: vhs-lines 8s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Signal interference bar */
+        .hosts::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(
+                180deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.1) 50%,
+                transparent 100%
+            );
+            transform: translateY(-100px);
+            animation: interference-scan 8s linear infinite;
+            pointer-events: none;
+            z-index: 2;
+            mix-blend-mode: screen;
+        }
+
+        @keyframes interference-scan {
+            0% { transform: translateY(-100px); }
+            100% { transform: translateY(calc(100% + 100px)); }
+        }
+
+        @keyframes vhs-lines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
         }
 
         .hosts-grid {
@@ -567,7 +668,7 @@
 
         .host-card {
             background: rgba(0, 0, 0, 0.9);
-            border: 2px solid var(--vhs-purple);
+            border: 2px solid #333;
             padding: 30px;
             text-align: center;
             position: relative;
@@ -576,9 +677,89 @@
             cursor: pointer;
         }
 
+        /* Glitch effect on hover */
+        .host-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.1) 50%,
+                transparent 100%
+            );
+            transition: left 0.5s;
+        }
+
+        .host-card:hover::before {
+            left: 100%;
+        }
+
+        .host-card::after {
+            content: "CLASSIFIED";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-20deg);
+            font-size: 60px;
+            font-weight: bold;
+            color: rgba(255, 0, 0, 0.1);
+            letter-spacing: 10px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .host-card:hover::after {
+            opacity: 1;
+            animation: stamp-glitch 0.3s infinite;
+        }
+
+        @keyframes stamp-glitch {
+            0%, 100% { 
+                opacity: 1;
+                transform: translate(-50%, -50%) rotate(-20deg);
+            }
+            25% { 
+                opacity: 0.8;
+                transform: translate(-48%, -50%) rotate(-20deg);
+            }
+            50% { 
+                opacity: 0.9;
+                transform: translate(-52%, -50%) rotate(-20deg);
+            }
+            75% { 
+                opacity: 0.7;
+                transform: translate(-50%, -48%) rotate(-20deg);
+            }
+        }
+
         .host-card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 30px var(--vhs-purple);
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            border-color: #666;
+            animation: host-interference 0.5s infinite;
+        }
+
+        @keyframes host-interference {
+            0%, 100% { 
+                filter: brightness(1) contrast(1);
+            }
+            20% { 
+                filter: brightness(1.2) contrast(1.5) blur(0.5px);
+            }
+            40% { 
+                filter: brightness(0.8) contrast(1.2);
+            }
+            60% { 
+                filter: brightness(1.1) contrast(0.9) blur(0.3px);
+            }
+            80% { 
+                filter: brightness(0.9) contrast(1.3);
+            }
         }
 
         .host-card.flipped {
@@ -596,16 +777,32 @@
             height: 150px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid var(--vhs-purple);
-            filter: grayscale(100%) contrast(1.2);
+            border: 3px solid #444;
+            filter: grayscale(100%) contrast(1.5) brightness(0.9);
             transition: all 0.3s;
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
         }
 
         .host-card:hover .host-image {
-            filter: grayscale(50%) contrast(1.1);
-            box-shadow: 0 0 30px rgba(255, 0, 255, 0.8);
+            filter: grayscale(100%) contrast(2) brightness(1.1);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
             transform: scale(1.05);
+            animation: image-distort 0.3s infinite;
+        }
+
+        @keyframes image-distort {
+            0%, 100% { 
+                filter: grayscale(100%) contrast(2) brightness(1.1);
+            }
+            25% { 
+                filter: grayscale(100%) contrast(3) brightness(1.3) blur(1px);
+            }
+            50% { 
+                filter: grayscale(100%) contrast(1.5) brightness(0.8);
+            }
+            75% { 
+                filter: grayscale(100%) contrast(2.5) brightness(1) blur(0.5px);
+            }
         }
 
         .host-id {
@@ -614,19 +811,53 @@
             left: 50%;
             transform: translateX(-50%);
             background: #000;
-            color: var(--vhs-purple);
+            color: #fff;
             padding: 2px 10px;
             font-size: 10px;
             font-family: 'Courier New', monospace;
-            border: 1px solid var(--vhs-purple);
+            border: 1px solid #666;
             letter-spacing: 1px;
+            animation: id-flicker 3s infinite;
+        }
+
+        @keyframes id-flicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.4; }
+            94% { opacity: 1; }
+            96% { opacity: 0.3; }
+            97% { opacity: 1; }
         }
 
         .host-name {
             font-size: 28px;
-            color: var(--vhs-purple);
+            color: #fff;
             margin-bottom: 10px;
             text-transform: uppercase;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        .host-card:hover .host-name {
+            animation: text-corrupt 0.8s infinite;
+        }
+
+        @keyframes text-corrupt {
+            0%, 100% { 
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+                transform: translateX(0);
+            }
+            20% { 
+                text-shadow: -2px 0 #fff, 2px 0 #000;
+                transform: translateX(2px);
+            }
+            40% { 
+                text-shadow: 2px 0 #fff, -2px 0 #000;
+                transform: translateX(-2px);
+            }
+            60% { 
+                text-shadow: 0 2px #fff, 0 -2px #000;
+                transform: translateX(0);
+            }
         }
 
         .host-role {
@@ -1258,8 +1489,8 @@
     <!-- Hosts Section -->
     <section id="hosts" class="hosts">
         <div class="container">
-            <h2 class="section-title">THE INVESTIGATORS</h2>
-            <div class="terminal-header">PERSONNEL FILES ACCESSED</div>
+            <h2 class="section-title corrupted-title">THE INVESTIGATORS</h2>
+            <div class="terminal-header glitch-text">PERSONNEL FILES ACCESSED - WARNING: SECURITY BREACH DETECTED</div>
             <div class="hosts-grid">
                 <div class="host-card" onclick="revealHostSecret('mathas')">
                     <div class="host-image-container">
