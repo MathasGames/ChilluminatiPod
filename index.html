@@ -2909,7 +2909,7 @@
             <div class="terminal-header" style="text-align: center;">SUBMIT YOUR PARANORMAL ENCOUNTER...</div>
             
             <div class="sighting-form-container">
-                <form id="sightingForm" class="sighting-form">
+                <form id="sightingForm" class="sighting-form" action="https://formspree.io/f/myzjkndl" method="POST">
                     <div class="form-header">
                         <div class="form-id">FORM-X77B</div>
                         <div class="form-status">● RECORDING</div>
@@ -2918,7 +2918,7 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="witness-name">WITNESS IDENTIFICATION:</label>
-                            <input type="text" id="witness-name" name="witness_name" required 
+                            <input type="text" id="witness-name" name="name" required 
                                    placeholder="YOUR NAME OR ALIAS">
                         </div>
                         
@@ -2949,7 +2949,7 @@
                         
                         <div class="form-group full-width">
                             <label for="incident-details">DETAILED REPORT:</label>
-                            <textarea id="incident-details" name="details" rows="6" required 
+                            <textarea id="incident-details" name="message" rows="6" required 
                                       placeholder="DESCRIBE YOUR ENCOUNTER IN DETAIL. INCLUDE ANY EVIDENCE, WITNESSES, OR UNUSUAL CIRCUMSTANCES..."></textarea>
                         </div>
                         
@@ -2958,6 +2958,9 @@
                             <input type="email" id="witness-email" name="email" 
                                    placeholder="YOUR EMAIL FOR FOLLOW-UP">
                         </div>
+                        
+                        <!-- Hidden field for email subject -->
+                        <input type="hidden" name="_subject" id="email-subject" value="New Sighting Report">
                     </div>
                     
                     <div class="form-footer">
@@ -2970,7 +2973,6 @@
                 
                 <div class="form-notes">
                     <p>Your sighting may be featured in a future episode. By submitting, you agree to let us share your story (names can be changed upon request).</p>
-                    <p style="margin-top: 10px; font-size: 11px; opacity: 0.7;">Note: This will open your email client. For a smoother experience, consider adding a form service like Formspree.</p>
                 </div>
             </div>
         </div>
@@ -3268,93 +3270,122 @@
             }
         });
         
-        // Better form handling for fan sightings
+        // Better form handling for fan sightings with Formspree
         document.addEventListener('DOMContentLoaded', function() {
             const sightingForm = document.getElementById('sightingForm');
             if (sightingForm) {
+                // Update subject line when type or location changes
+                const updateSubject = () => {
+                    const type = document.getElementById('incident-type').value;
+                    const location = document.getElementById('witness-location').value;
+                    const subjectField = document.getElementById('email-subject');
+                    
+                    if (type && location) {
+                        subjectField.value = `Sighting Report: ${type} - ${location}`;
+                    } else if (type) {
+                        subjectField.value = `Sighting Report: ${type}`;
+                    } else {
+                        subjectField.value = 'New Sighting Report';
+                    }
+                };
+                
+                document.getElementById('incident-type').addEventListener('change', updateSubject);
+                document.getElementById('witness-location').addEventListener('blur', updateSubject);
+                
                 sightingForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
-                    // Get form data
-                    const witnessName = document.getElementById('witness-name').value;
-                    const location = document.getElementById('witness-location').value;
-                    const date = document.getElementById('incident-date').value;
-                    const type = document.getElementById('incident-type').value;
-                    const details = document.getElementById('incident-details').value;
-                    const email = document.getElementById('witness-email').value;
-                    
-                    // Format email body
-                    const subject = `SIGHTING REPORT: ${type} - ${location}`;
-                    const body = `CHILLUMINATI SIGHTING REPORT
-============================
-
-WITNESS: ${witnessName}
-LOCATION: ${location}
-DATE: ${date}
-TYPE: ${type}
-CONTACT: ${email || 'Not provided'}
-
-DETAILED REPORT:
-${details}
-
-============================
-[Sent via ChilluminatiPodcast.com]`;
-                    
-                    // Create mailto link
-                    const mailtoLink = `mailto:chilluminatipod@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                    
-                    // Show confirmation message
-                    showTerminalMessage('SIGHTING REPORT PREPARED - OPENING EMAIL CLIENT...');
+                    // Show sending message
+                    showTerminalMessage('TRANSMITTING SIGHTING REPORT...');
                     
                     // Play transmission sound
                     if (soundEnabled) {
                         playStaticSound();
                     }
                     
-                    // Try multiple methods to open email
-                    // Method 1: Create a temporary link and click it
-                    const tempLink = document.createElement('a');
-                    tempLink.href = mailtoLink;
-                    tempLink.style.display = 'none';
-                    document.body.appendChild(tempLink);
-                    tempLink.click();
-                    document.body.removeChild(tempLink);
+                    // Get form data
+                    const formData = new FormData(sightingForm);
                     
-                    // Show alternative if email doesn't open
-                    setTimeout(() => {
-                        showTerminalMessage('EMAIL CLIENT OPENED - OR COPY EMAIL: chilluminatipod@gmail.com');
+                    // Submit to Formspree
+                    fetch(sightingForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Success!
+                            showTerminalMessage('TRANSMISSION SUCCESSFUL - REPORT RECEIVED!');
+                            
+                            // Show success message
+                            const successMessage = document.createElement('div');
+                            successMessage.innerHTML = `
+                                <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                                            background: rgba(0,0,0,0.95); border: 2px solid var(--neon-green); 
+                                            padding: 30px; z-index: 9999; max-width: 500px; text-align: center;">
+                                    <h3 style="color: var(--neon-green); margin-bottom: 20px;">TRANSMISSION COMPLETE</h3>
+                                    <p style="color: #fff; margin-bottom: 20px;">Your sighting report has been successfully received!</p>
+                                    <p style="color: #999; font-size: 12px; margin-bottom: 20px;">We'll review your encounter and may feature it in a future episode.</p>
+                                    <button onclick="this.parentElement.remove()" 
+                                            style="background: transparent; border: 1px solid var(--neon-green); 
+                                                   color: var(--neon-green); padding: 10px 20px; cursor: pointer;">
+                                        CLOSE
+                                    </button>
+                                </div>
+                            `;
+                            document.body.appendChild(successMessage);
+                            
+                            // Reset form
+                            sightingForm.reset();
+                            
+                            // Remove success message after 5 seconds
+                            setTimeout(() => {
+                                if (successMessage.parentElement) {
+                                    successMessage.remove();
+                                }
+                            }, 5000);
+                            
+                            // Play success sound
+                            if (soundEnabled) {
+                                createSound(800, 0.2, 'sine', 0.05);
+                                setTimeout(() => createSound(1200, 0.3, 'sine', 0.05), 200);
+                            }
+                        } else {
+                            // Error
+                            throw new Error('Form submission failed');
+                        }
+                    })
+                    .catch(error => {
+                        showTerminalMessage('TRANSMISSION ERROR - PLEASE TRY AGAIN');
+                        console.error('Error:', error);
                         
-                        // Also show the email in a copyable format
-                        const copyMessage = document.createElement('div');
-                        copyMessage.innerHTML = `
+                        // Show error message
+                        const errorMessage = document.createElement('div');
+                        errorMessage.innerHTML = `
                             <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                                        background: rgba(0,0,0,0.95); border: 2px solid var(--vhs-purple); 
+                                        background: rgba(0,0,0,0.95); border: 2px solid var(--vhs-red); 
                                         padding: 30px; z-index: 9999; max-width: 500px; text-align: center;">
-                                <h3 style="color: var(--vhs-purple); margin-bottom: 20px;">EMAIL DETAILS</h3>
-                                <p style="color: #fff; margin-bottom: 10px;">If your email client didn't open, send to:</p>
-                                <p style="color: var(--neon-green); font-size: 18px; margin-bottom: 20px;">chilluminatipod@gmail.com</p>
-                                <p style="color: #999; font-size: 12px; margin-bottom: 20px;">Subject: ${subject}</p>
+                                <h3 style="color: var(--vhs-red); margin-bottom: 20px;">TRANSMISSION FAILED</h3>
+                                <p style="color: #fff; margin-bottom: 20px;">There was an error sending your report.</p>
+                                <p style="color: #999; font-size: 12px; margin-bottom: 20px;">Please try again or email directly to: chilluminatipod@gmail.com</p>
                                 <button onclick="this.parentElement.remove()" 
-                                        style="background: transparent; border: 1px solid var(--vhs-purple); 
-                                               color: var(--vhs-purple); padding: 10px 20px; cursor: pointer;">
+                                        style="background: transparent; border: 1px solid var(--vhs-red); 
+                                               color: var(--vhs-red); padding: 10px 20px; cursor: pointer;">
                                     CLOSE
                                 </button>
                             </div>
                         `;
-                        document.body.appendChild(copyMessage);
+                        document.body.appendChild(errorMessage);
                         
-                        // Remove after 10 seconds
+                        // Remove error message after 5 seconds
                         setTimeout(() => {
-                            if (copyMessage.parentElement) {
-                                copyMessage.remove();
+                            if (errorMessage.parentElement) {
+                                errorMessage.remove();
                             }
-                        }, 10000);
-                    }, 1000);
-                    
-                    // Reset form after a delay
-                    setTimeout(() => {
-                        sightingForm.reset();
-                    }, 2000);
+                        }, 5000);
+                    });
                 });
             }
         });
