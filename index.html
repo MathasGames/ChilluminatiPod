@@ -1002,6 +1002,263 @@
             background: rgba(0, 255, 255, 0.05);
         }
 
+        /* Live Shows Section */
+        .live-shows {
+            padding: 80px 0;
+            background: rgba(255, 0, 0, 0.03);
+            position: relative;
+        }
+
+        .live-monitor {
+            max-width: 900px;
+            margin: 50px auto;
+            background: #000;
+            border: 3px solid var(--vhs-red);
+            box-shadow: 
+                0 0 50px rgba(255, 0, 64, 0.3),
+                inset 0 0 50px rgba(255, 0, 64, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .live-monitor::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 0, 64, 0.03) 2px,
+                rgba(255, 0, 64, 0.03) 4px
+            );
+            pointer-events: none;
+            animation: scan-lines 8s linear infinite;
+        }
+
+        .monitor-screen {
+            padding: 0;
+            position: relative;
+        }
+
+        .monitor-header {
+            background: rgba(255, 0, 64, 0.1);
+            border-bottom: 2px solid var(--vhs-red);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--vhs-red);
+        }
+
+        .monitor-status {
+            animation: pulse 2s infinite;
+        }
+
+        .monitor-status::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--vhs-red);
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 1s infinite;
+        }
+
+        .live-shows-list {
+            padding: 30px;
+            min-height: 200px;
+        }
+
+        .live-show-entry {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #333;
+            margin-bottom: 20px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .live-show-entry:hover {
+            border-color: var(--vhs-red);
+            box-shadow: 0 0 20px rgba(255, 0, 64, 0.2);
+            transform: translateX(5px);
+        }
+
+        .live-show-entry.active-signal::before {
+            content: 'SIGNAL ACTIVE';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 10px;
+            color: var(--neon-green);
+            animation: flicker 3s infinite;
+        }
+
+        .show-date {
+            text-align: center;
+            border: 2px solid var(--vhs-red);
+            padding: 15px;
+            min-width: 80px;
+            background: rgba(255, 0, 64, 0.05);
+        }
+
+        .date-month {
+            font-size: 14px;
+            color: var(--vhs-red);
+            font-weight: bold;
+        }
+
+        .date-day {
+            font-size: 36px;
+            color: #fff;
+            font-weight: bold;
+            line-height: 1;
+            margin: 5px 0;
+        }
+
+        .date-year {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .show-details {
+            flex: 1;
+        }
+
+        .show-location {
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .show-venue,
+        .show-time {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .show-status {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        .status-confirmed {
+            color: var(--neon-green);
+            animation: pulse 2s infinite;
+        }
+
+        .show-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .small-button {
+            padding: 10px 20px !important;
+            font-size: 12px !important;
+        }
+
+        .vhs-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+
+        .vhs-button.disabled:hover {
+            background: transparent;
+            color: var(--neon-green);
+        }
+
+        .monitor-footer {
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 1px solid #333;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .signal-message {
+            margin-bottom: 10px;
+            animation: flicker 5s infinite;
+        }
+
+        .update-notice {
+            font-family: 'Courier New', monospace;
+            opacity: 0.7;
+        }
+
+        .live-updates-box {
+            max-width: 600px;
+            margin: 50px auto 0;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--vhs-red);
+            padding: 40px;
+            position: relative;
+        }
+
+        .live-updates-box h3 {
+            color: var(--vhs-red);
+            margin-bottom: 20px;
+            font-size: 24px;
+            animation: chromatic 4s infinite;
+        }
+
+        .live-updates-box p {
+            color: #ccc;
+            margin-bottom: 30px;
+        }
+
+        /* Mobile adjustments for live shows */
+        @media (max-width: 768px) {
+            .live-shows {
+                padding: 50px 0;
+            }
+
+            .live-show-entry {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .show-date {
+                margin: 0 auto;
+            }
+
+            .show-location {
+                font-size: 20px;
+            }
+
+            .show-actions {
+                width: 100%;
+            }
+
+            .small-button {
+                width: 100%;
+            }
+
+            .live-updates-box {
+                padding: 25px;
+            }
+        }
+
         .episode-machine {
             max-width: 600px;
             margin: 50px auto;
@@ -1836,7 +2093,7 @@
                 font-size: 18px;
             }
 
-            /* Fixed elements */
+            /* Fixed elements mobile positioning */
             .performance-toggle {
                 bottom: 140px;
                 left: 10px;
@@ -1904,7 +2161,8 @@
             /* Sections padding */
             .latest-episode,
             .hosts,
-            .episodes {
+            .episodes,
+            .live-shows {
                 padding: 50px 0;
             }
 
@@ -2057,6 +2315,7 @@
                 <li><a href="#latest">LATEST.EXE</a></li>
                 <li><a href="#episodes">ARCHIVE</a></li>
                 <li><a href="#hosts">SUBJECTS</a></li>
+                <li><a href="#live">LIVE SIGNAL</a></li>
                 <li><a href="#subscribe">CONNECT</a></li>
                 <li><a href="http://www.theyetee.com/chilluminati">SHOP</a></li>
             </ul>
@@ -2231,6 +2490,83 @@
         </div>
     </section>
 
+    <!-- Live Shows Section -->
+    <section id="live" class="live-shows">
+        <div class="container">
+            <h2 class="section-title">LIVE TRANSMISSIONS</h2>
+            <div class="terminal-header" style="text-align: center;">IN-PERSON ENCOUNTERS SCHEDULED...</div>
+            
+            <div class="live-monitor">
+                <div class="monitor-screen">
+                    <div class="monitor-header">
+                        <span class="monitor-status">● TRACKING LIVE SIGNALS</span>
+                        <span class="monitor-time" id="monitorTime">--:--:--</span>
+                    </div>
+                    
+                    <!-- Live Show Entries - EASY TO UPDATE! -->
+                    <div class="live-shows-list">
+                        
+                        <!-- SHOW 1 - Chicago -->
+                        <div class="live-show-entry active-signal">
+                            <div class="show-date">
+                                <div class="date-month">NOV</div>
+                                <div class="date-day">01</div>
+                                <div class="date-year">2025</div>
+                            </div>
+                            <div class="show-details">
+                                <h3 class="show-location">CHICAGO, IL</h3>
+                                <div class="show-venue">VENUE: [CLASSIFIED - CHECK BACK SOON]</div>
+                                <div class="show-time">TIME: [REDACTED]</div>
+                                <div class="show-status">STATUS: <span class="status-confirmed">CONFIRMED</span></div>
+                            </div>
+                            <div class="show-actions">
+                                <a href="#" class="vhs-button small-button disabled">TICKETS SOON</a>
+                            </div>
+                        </div>
+                        
+                        <!-- 
+                        TO ADD MORE SHOWS: Copy everything between SHOW START and SHOW END below
+                        
+                        ==== SHOW START ====
+                        <div class="live-show-entry active-signal">
+                            <div class="show-date">
+                                <div class="date-month">DEC</div>
+                                <div class="date-day">15</div>
+                                <div class="date-year">2025</div>
+                            </div>
+                            <div class="show-details">
+                                <h3 class="show-location">LOS ANGELES, CA</h3>
+                                <div class="show-venue">VENUE: THE WILTERN</div>
+                                <div class="show-time">TIME: 8:00 PM PST</div>
+                                <div class="show-status">STATUS: <span class="status-confirmed">CONFIRMED</span></div>
+                            </div>
+                            <div class="show-actions">
+                                <a href="https://ticketlink.com" class="vhs-button small-button">GET TICKETS</a>
+                            </div>
+                        </div>
+                        ==== SHOW END ====
+                        -->
+                        
+                    </div>
+                    
+                    <div class="monitor-footer">
+                        <p class="signal-message">More live transmissions being scheduled...</p>
+                        <p class="update-notice">Last scan: <span id="lastScan">JUST NOW</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mailing List for Live Shows -->
+            <div class="live-updates-box">
+                <h3>RECEIVE TRANSMISSION ALERTS</h3>
+                <p>Get notified when new live shows are announced in your area.</p>
+                <button class="vhs-button" onclick="showTerminalMessage('MAILING LIST COMING SOON...')">
+                    [ JOIN ALERT SYSTEM ]
+                </button>
+            </div>
+        </div>
+    </section>
+
     <!-- Subscribe Section -->
     <section id="subscribe" class="latest-episode">
         <div class="container">
@@ -2279,6 +2615,7 @@
                     <h3>Explore</h3>
                     <a href="https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP?si=887d9ae4368f4efd">All Episodes</a>
                     <a href="https://www.patreon.com/chilluminatipod">Minisodes (Patreon)</a>
+                    <a href="#live">Live Shows</a>
                     <a href="http://www.youtube.com/@chilluminatipod">YouTube Archive</a>
                     <a href="https://audioboom.com/channels/5031584.rss">RSS Feed</a>
                 </div>
@@ -2302,7 +2639,7 @@
             </div>
             <div class="copyright">
                 <p>© 2025 CHILLUMINATI PODCAST | TRANSMISSION COMPLETE</p>
-                <p style="margin-top: 10px; font-size: 10px; color: #333;">Try: ↑↑↓↓←→←→BA | Click logo 5x | Type "theme"</p>
+                <p style="margin-top: 10px; font-size: 10px; color: #333;">Easter eggs: ↑↑↓↓←→←→BA | Click logo 5 times for audio secret</p>
             </div>
         </div>
     </footer>
@@ -2452,8 +2789,6 @@
                 showTerminalMessage('SIGHTING TRACKER RESUMED');
                 updateSightingTracker();
             }
-            
-            playClickSound();
         });
         
         // Start sighting tracker after a delay
@@ -2465,6 +2800,14 @@
         // Theme Song Easter Egg
         let themeEggSequence = [];
         const themeEggCode = ['t', 'h', 'e', 'm', 'e'];
+        let themeAudio = null;
+        
+        // Preload theme song
+        function preloadThemeAudio() {
+            themeAudio = new Audio('./audio/theme.mp3');
+            themeAudio.volume = 0.5;
+            themeAudio.preload = 'auto';
+        }
         
         document.addEventListener('keypress', (e) => {
             themeEggSequence.push(e.key.toLowerCase());
@@ -2492,14 +2835,22 @@
                 document.body.style.animation = '';
             }, 2000);
             
-            // Play the actual theme song MP3
-            const audio = new Audio('./audio/theme.mp3');
-            audio.volume = 0.5; // 50% volume to keep it reasonable
-            audio.play().catch(err => {
+            // Play the theme song
+            if (!themeAudio) {
+                themeAudio = new Audio('./audio/theme.mp3');
+                themeAudio.volume = 0.5;
+            }
+            
+            // Reset and play
+            themeAudio.currentTime = 0;
+            themeAudio.play().catch(err => {
                 console.log('Could not play theme song:', err);
                 showTerminalMessage('THEME SONG FILE NOT FOUND');
             });
         }
+        
+        // Preload audio when page loads
+        window.addEventListener('load', preloadThemeAudio);
         
         // Global episode count variable
         let TOTAL_EPISODES = 302; // Default fallback value - update this if RSS fetch fails
@@ -2753,17 +3104,47 @@
             
             document.getElementById('date').textContent = date;
             document.getElementById('time').textContent = time;
+            
+            // Update monitor time if it exists
+            const monitorTime = document.getElementById('monitorTime');
+            if (monitorTime) {
+                monitorTime.textContent = time;
+            }
         }
 
         setInterval(updateTimestamp, 1000);
         updateTimestamp();
 
+        // Update last scan time for live shows
+        function updateLastScan() {
+            const lastScan = document.getElementById('lastScan');
+            if (lastScan) {
+                const minutes = Math.floor(Math.random() * 10) + 1;
+                lastScan.textContent = `${minutes} MINUTES AGO`;
+            }
+        }
+        
+        setInterval(updateLastScan, 30000); // Update every 30 seconds
+        updateLastScan();
+
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
+                const targetId = this.getAttribute('href');
+                const target = document.querySelector(targetId);
                 if (target) {
+                    // Close mobile menu if open
+                    const navLinks = document.getElementById('navLinks');
+                    const menuToggle = document.getElementById('menuToggle');
+                    const menuText = document.getElementById('menuText');
+                    if (navLinks && navLinks.classList.contains('active')) {
+                        navLinks.classList.remove('active');
+                        menuToggle.classList.remove('active');
+                        menuText.textContent = '[ MENU ]';
+                    }
+                    
+                    // Scroll to target
                     target.scrollIntoView({
                         behavior: 'smooth',
                         block: 'start'
@@ -2774,13 +3155,15 @@
 
         // Random glitch effect
         setInterval(() => {
-            const elements = document.querySelectorAll('.episode-title, .host-name');
+            const elements = document.querySelectorAll('.episode-title, .host-name, .show-location');
             const randomElement = elements[Math.floor(Math.random() * elements.length)];
             
-            randomElement.style.animation = 'vhs-glitch 0.3s';
-            setTimeout(() => {
-                randomElement.style.animation = '';
-            }, 300);
+            if (randomElement) {
+                randomElement.style.animation = 'vhs-glitch 0.3s';
+                setTimeout(() => {
+                    randomElement.style.animation = '';
+                }, 300);
+            }
         }, 5000);
 
         // Countdown to next episode
