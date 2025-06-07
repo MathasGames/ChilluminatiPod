@@ -19,31 +19,6 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            /* Touch-friendly adjustments */
-            a, button {
-                min-height: 44px;
-                min-width: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            /* Increase tap target sizes */
-            .host-card {
-                min-height: 200px;
-            }
-
-            /* Prevent horizontal scroll */
-            body {
-                overflow-x: hidden;
-            }
-
-            /* Ensure desktop nav links display properly */
-            @media (min-width: 769px) {
-                .nav-links {
-                    display: flex !important;
-                }
-            }
         }
 
         :root {
@@ -3180,8 +3155,6 @@
             // Update the tracker
             trackerText.innerHTML = `<span class="sighting-item">${fullText}</span>`;
             
-            // Removed passive beep sound that was playing randomly
-            
             // Move to next sighting
             currentSightingIndex = (currentSightingIndex + 1) % sightings.length;
         }
@@ -3205,8 +3178,253 @@
             updateSightingTracker();
             sightingInterval = setInterval(updateSightingTracker, 12000); // Update every 12 seconds
         }, 3000);
-        
-        // Episode Search Functionality
+
+        // Episode Database
+        let EPISODE_DATABASE = [];
+        let TOTAL_EPISODES = 302; // Default fallback value
+
+        // Function to fetch and populate episode database from RSS feed
+        async function populateEpisodeDatabase() {
+            console.log('Fetching episode data from RSS feed...');
+            
+            const proxyUrl = 'https://api.allorigins.win/get?url=';
+            const rssUrl = 'https://audioboom.com/channels/5031584.rss';
+            
+            try {
+                const response = await fetch(proxyUrl + encodeURIComponent(rssUrl));
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch RSS feed: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const xmlText = data.contents;
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                
+                // Check for parse errors
+                const parseError = xmlDoc.querySelector('parsererror');
+                if (parseError) {
+                    throw new Error('Failed to parse RSS feed');
+                }
+                
+                // Get all episodes
+                const items = xmlDoc.getElementsByTagName('item');
+                console.log(`Found ${items.length} episodes in RSS feed`);
+                
+                // Clear existing database
+                EPISODE_DATABASE = [];
+                
+                // Process each episode
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    
+                    // Extract episode data
+                    const title = item.querySelector('title')?.textContent || '';
+                    const description = item.querySelector('description')?.textContent || '';
+                    const link = item.querySelector('link')?.textContent || '';
+                    const pubDate = item.querySelector('pubDate')?.textContent || '';
+                    
+                    // Extract audio URL from enclosure tag
+                    const enclosure = item.querySelector('enclosure');
+                    const audioUrl = enclosure?.getAttribute('url') || '';
+                    
+                    // Clean up description (remove HTML)
+                    const cleanDescription = description
+                        .replace(/<[^>]*>/g, '')
+                        .replace(/&nbsp;/g, ' ')
+                        .replace(/&amp;/g, '&')
+                        .replace(/&lt;/g, '<')
+                        .replace(/&gt;/g, '>')
+                        .replace(/&quot;/g, '"')
+                        .replace(/&#39;/g, "'")
+                        .trim();
+                    
+                    // Extract episode number from title
+                    let episodeNumber = null;
+                    
+                    // Try different patterns to match episode numbers
+                    const patterns = [
+                        /Episode\s+(\d+)/i,
+                        /Ep\s+(\d+)/i,
+                        /Ep\.?\s*(\d+)/i,
+                        /#(\d+)/,
+                        /(\d+)\s*-/,
+                        /^(\d+)\./
+                    ];
+                    
+                    for (const pattern of patterns) {
+                        const match = title.match(pattern);
+                        if (match) {
+                            episodeNumber = parseInt(match[1]);
+                            break;
+                        }
+                    }
+                    
+                    // Skip minisodes for main count
+                    const isMinisode = title.toLowerCase().includes('minisode') || 
+                                      title.toLowerCase().includes('mini-sode') ||
+                                      title.toLowerCase().includes('patreon');
+                    
+                    if (!episodeNumber && !isMinisode) {
+                        // Use position-based numbering for main episodes
+                        episodeNumber = items.length - i;
+                    }
+                    
+                    // Skip minisodes (optional - remove this if you want to include them)
+                    if (isMinisode) {
+                        continue;
+                    }
+                    
+                    // Create searchable text - make it more comprehensive
+                    const searchText = `${title} ${cleanDescription} episode ${episodeNumber}`.toLowerCase();
+                    
+                    // Add to database
+                    EPISODE_DATABASE.push({
+                        number: episodeNumber,
+                        title: title,
+                        description: cleanDescription.substring(0, 500), // Keep more description
+                        fullDescription: cleanDescription,
+                        link: link,
+                        audioUrl: audioUrl,
+                        spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati ' + title)}`,
+                        pubDate: pubDate,
+                        searchText: searchText
+                    });
+                }
+                
+                // Sort by episode number (descending)
+                EPISODE_DATABASE.sort((a, b) => (b.number || 0) - (a.number || 0));
+                
+                console.log(`✓ Episode database populated with ${EPISODE_DATABASE.length} episodes`);
+                console.log('Sample episode with audio:', EPISODE_DATABASE[0]);
+                
+                // Update total episodes count
+                TOTAL_EPISODES = EPISODE_DATABASE.length;
+                updateEpisodeReferences();
+                
+                return true;
+            } catch (error) {
+                console.error('Failed to populate episode database:', error);
+                
+                // Create fallback database
+                console.log('Creating fallback episode database...');
+                createFallbackDatabase();
+                
+                return false;
+            }
+        }
+
+        // Create fallback database
+        function createFallbackDatabase() {
+            EPISODE_DATABASE = [];
+            
+            for (let i = TOTAL_EPISODES; i >= 1; i--) {
+                EPISODE_DATABASE.push({
+                    number: i,
+                    title: `Episode ${i}`,
+                    description: 'Episode details unavailable. Click to search on Spotify.',
+                    fullDescription: '',
+                    link: 'https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP',
+                    audioUrl: '',
+                    spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + i)}`,
+                    searchText: `episode ${i}`
+                });
+            }
+        }
+
+        // Update the loadEpisode function
+        function loadEpisode(episodeNumber) {
+            const episode = EPISODE_DATABASE.find(ep => ep.number === episodeNumber);
+            
+            if (!episode) {
+                // If not in database, create a search link
+                const fallbackEpisode = {
+                    number: episodeNumber,
+                    title: `Episode ${episodeNumber}`,
+                    description: 'Search for this episode on Spotify.',
+                    audioUrl: '',
+                    spotifySearchUrl: `https://open.spotify.com/search/${encodeURIComponent('Chilluminati Episode ' + episodeNumber)}`
+                };
+                showEpisodeModal(fallbackEpisode);
+                return;
+            }
+            
+            showEpisodeModal(episode);
+        }
+
+        // Updated modal with embedded audio player
+        function showEpisodeModal(episode) {
+            // Show loading message
+            showTerminalMessage(`LOADING EPISODE ${episode.number}...`);
+            
+            // Create modal
+            const modal = document.createElement('div');
+            modal.className = 'episode-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease-in;
+                padding: 20px;
+            `;
+            
+            // Create audio player if audio URL exists
+            let audioPlayerHTML = '';
+            if (episode.audioUrl) {
+                audioPlayerHTML = `
+                    <div style="background: #000; border: 2px solid var(--neon-green); padding: 20px; margin-bottom: 20px;">
+                        <div style="color: var(--neon-green); font-size: 12px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">
+                            ▶ Direct Audio Feed
+                        </div>
+                        <audio controls style="width: 100%; filter: sepia(1) saturate(2) hue-rotate(90deg);">
+                            <source src="${episode.audioUrl}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                `;
+            }
+            
+            modal.innerHTML = `
+                <div style="background: #000; border: 3px solid var(--neon-green); padding: 30px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative;">
+                    <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 10px; right: 10px; background: transparent; border: 1px solid var(--vhs-red); color: var(--vhs-red); padding: 5px 15px; cursor: pointer; font-family: 'Courier New', monospace;">[ CLOSE ]</button>
+                    
+                    <h2 style="color: var(--neon-green); margin-bottom: 20px; font-size: 24px;">EPISODE ${episode.number}</h2>
+                    <h3 style="color: #fff; margin-bottom: 20px;">${episode.title}</h3>
+                    <p style="color: #ccc; margin-bottom: 30px; line-height: 1.6;">${episode.description}</p>
+                    
+                    ${audioPlayerHTML}
+                    
+                    <div style="text-align: center;">
+                        <a href="${episode.spotifySearchUrl}" target="_blank" class="vhs-button" style="display: inline-block; margin: 10px;">
+                            🎧 LISTEN ON SPOTIFY
+                        </a>
+                        ${episode.link && episode.link.includes('audioboom.com') ? `
+                            <a href="${episode.link}" target="_blank" class="vhs-button" style="display: inline-block; margin: 10px;">
+                                🌐 VIEW ON AUDIOBOOM
+                            </a>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Play load sound
+            if (soundEnabled) {
+                createSound(523, 0.1, 'sine', 0.05);
+                setTimeout(() => createSound(659, 0.1, 'sine', 0.05), 100);
+            }
+        }
+
+        // Fixed search function that properly searches by keywords
         function searchEpisodes() {
             const searchInput = document.getElementById('episodeSearchInput');
             const searchResults = document.getElementById('searchResults');
@@ -3217,32 +3435,65 @@
                 return;
             }
             
+            // Check if database is loaded
+            if (EPISODE_DATABASE.length === 0) {
+                searchResults.innerHTML = '<p class="search-status">DATABASE LOADING... TRYING AGAIN...</p>';
+                // Try to load database again
+                populateEpisodeDatabase().then(() => {
+                    setTimeout(() => searchEpisodes(), 1000);
+                });
+                return;
+            }
+            
             // Show searching status
             searchResults.innerHTML = '<p class="search-status">SCANNING ARCHIVES...</p>';
             
             // Simulate search delay for effect
             setTimeout(() => {
-                // Search through episode database
-                const results = EPISODE_DATABASE.filter(episode => 
-                    episode.searchText.includes(query) || 
-                    episode.number.toString() === query
-                );
+                // Split query into words for better matching
+                const queryWords = query.split(/\s+/).filter(word => word.length > 2);
                 
-                if (results.length === 0) {
+                // Search through episode database
+                const results = EPISODE_DATABASE.filter(episode => {
+                    // Check if it's an episode number search
+                    if (!isNaN(query) && episode.number === parseInt(query)) {
+                        return true;
+                    }
+                    
+                    // Check if all query words appear in the searchText
+                    if (queryWords.length > 0) {
+                        return queryWords.every(word => episode.searchText.includes(word));
+                    }
+                    
+                    // Fallback to simple includes
+                    return episode.searchText.includes(query);
+                });
+                
+                // If no results with all words, try with any word
+                let relaxedResults = [];
+                if (results.length === 0 && queryWords.length > 1) {
+                    relaxedResults = EPISODE_DATABASE.filter(episode => {
+                        return queryWords.some(word => episode.searchText.includes(word));
+                    });
+                }
+                
+                const finalResults = results.length > 0 ? results : relaxedResults;
+                
+                if (finalResults.length === 0) {
                     searchResults.innerHTML = `
                         <p class="search-status">NO RESULTS FOUND FOR "${query.toUpperCase()}"</p>
                         <p class="search-status" style="margin-top: 10px; font-size: 12px;">
-                            Try different keywords or episode numbers
+                            Try different keywords, episode numbers, or shorter search terms
                         </p>
                     `;
                 } else {
                     // Build results HTML
-                    let resultsHTML = `<p class="search-status">FOUND ${results.length} RESULT${results.length > 1 ? 'S' : ''}</p>`;
+                    let resultsHTML = `<p class="search-status">FOUND ${finalResults.length} RESULT${finalResults.length > 1 ? 'S' : ''}</p>`;
                     
                     // Show max 10 results
-                    results.slice(0, 10).forEach(episode => {
+                    finalResults.slice(0, 10).forEach(episode => {
                         resultsHTML += `
-                            <div class="search-result-item" onclick="loadEpisode(${episode.number})">
+                            <div class="search-result-item" onclick="loadEpisode(${episode.number})" style="cursor: pointer;">
                                 <div class="result-episode-number">EPISODE ${episode.number}</div>
                                 <div class="result-episode-title">${episode.title}</div>
                                 <div class="result-episode-topics">${episode.description.substring(0, 150)}...</div>
@@ -3250,9 +3501,9 @@
                         `;
                     });
                     
-                    if (results.length > 10) {
+                    if (finalResults.length > 10) {
                         resultsHTML += `<p class="search-status" style="margin-top: 10px; font-size: 12px;">
-                            Showing first 10 results of ${results.length}
+                            Showing first 10 results of ${finalResults.length}
                         </p>`;
                     }
                     
@@ -3266,612 +3517,21 @@
                 }
             }, 1000);
         }
-        
-        // Function to load a specific episode
-        function loadEpisode(episodeNumber) {
-            const episode = EPISODE_DATABASE.find(ep => ep.number === episodeNumber);
-            
-            if (!episode) {
-                showTerminalMessage('EPISODE NOT FOUND IN DATABASE');
-                return;
-            }
-            
-            // Show loading message
-            showTerminalMessage(`LOADING EPISODE ${episodeNumber}...`);
-            
-            // Create a modal to display the episode
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.95);
-                z-index: 10000;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                animation: fadeIn 0.3s ease-in;
-            `;
-            
-            modal.innerHTML = `
-                <div style="background: #000; border: 3px solid var(--neon-green); padding: 30px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
-                    <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 10px; right: 10px; background: transparent; border: 1px solid var(--vhs-red); color: var(--vhs-red); padding: 5px 15px; cursor: pointer; font-family: 'Courier New', monospace;">[ CLOSE ]</button>
-                    
-                    <h2 style="color: var(--neon-green); margin-bottom: 20px; font-size: 24px;">EPISODE ${episode.number}</h2>
-                    <h3 style="color: #fff; margin-bottom: 20px;">${episode.title}</h3>
-                    <p style="color: #ccc; margin-bottom: 30px;">${episode.description}</p>
-                    
-                    <div style="background: #000; border: 1px solid var(--neon-green); padding: 10px; margin-bottom: 20px;">
-                        ${episode.spotifyId ? 
-                            `<iframe style="border-radius:12px" src="https://open.spotify.com/embed/episode/${episode.spotifyId}?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>` :
-                            `<iframe style="border-radius:12px" src="https://open.spotify.com/embed/show/71Dnx4yKkQ0TfPWWu3swYP?utm_source=generator&theme=0" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                            <p style="color: var(--vhs-red); text-align: center; margin-top: 10px; font-size: 12px;">SPECIFIC EPISODE EMBEDDING NOT AVAILABLE - SHOWING LATEST EPISODES</p>`
-                        }
-                    </div>
-                    
-                    <div style="text-align: center;">
-                        <a href="${episode.link || `https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP?si=887d9ae4368f4efd`}" target="_blank" class="vhs-button" style="display: inline-block; margin-top: 10px;">OPEN IN SPOTIFY</a>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-            
-            // Play load sound
-            if (soundEnabled) {
-                createSound(523, 0.1, 'sine', 0.05);
-                setTimeout(() => createSound(659, 0.1, 'sine', 0.05), 100);
-            }
-        }
-        
-        // Enter key support for search
+
+        // Call populateEpisodeDatabase after page loads
         document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('episodeSearchInput');
-            if (searchInput) {
-                searchInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        searchEpisodes();
-                    }
-                });
-            }
-        });
-        
-        // Better form handling for fan sightings with Formspree
-        document.addEventListener('DOMContentLoaded', function() {
-            const sightingForm = document.getElementById('sightingForm');
-            if (sightingForm) {
-                // Update subject line when type or location changes
-                const updateSubject = () => {
-                    const type = document.getElementById('incident-type').value;
-                    const location = document.getElementById('witness-location').value;
-                    const subjectField = document.getElementById('email-subject');
-                    
-                    if (type && location) {
-                        subjectField.value = `Sighting Report: ${type} - ${location}`;
-                    } else if (type) {
-                        subjectField.value = `Sighting Report: ${type}`;
-                    } else {
-                        subjectField.value = 'New Sighting Report';
-                    }
-                };
-                
-                document.getElementById('incident-type').addEventListener('change', updateSubject);
-                document.getElementById('witness-location').addEventListener('blur', updateSubject);
-                
-                sightingForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    // Show sending message
-                    showTerminalMessage('TRANSMITTING SIGHTING REPORT...');
-                    
-                    // Play transmission sound
-                    if (soundEnabled) {
-                        playStaticSound();
-                    }
-                    
-                    // Get form data
-                    const formData = new FormData(sightingForm);
-                    
-                    // Submit to Formspree
-                    fetch(sightingForm.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            // Success!
-                            showTerminalMessage('TRANSMISSION SUCCESSFUL - REPORT RECEIVED!');
-                            
-                            // Show success message
-                            const successMessage = document.createElement('div');
-                            successMessage.innerHTML = `
-                                <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                                            background: rgba(0,0,0,0.95); border: 2px solid var(--neon-green); 
-                                            padding: 30px; z-index: 9999; max-width: 500px; text-align: center;">
-                                    <h3 style="color: var(--neon-green); margin-bottom: 20px;">TRANSMISSION COMPLETE</h3>
-                                    <p style="color: #fff; margin-bottom: 20px;">Your sighting report has been successfully received!</p>
-                                    <p style="color: #999; font-size: 12px; margin-bottom: 20px;">We'll review your encounter and may feature it in a future episode.</p>
-                                    <button onclick="this.parentElement.remove()" 
-                                            style="background: transparent; border: 1px solid var(--neon-green); 
-                                                   color: var(--neon-green); padding: 10px 20px; cursor: pointer;">
-                                        CLOSE
-                                    </button>
-                                </div>
-                            `;
-                            document.body.appendChild(successMessage);
-                            
-                            // Reset form
-                            sightingForm.reset();
-                            
-                            // Remove success message after 5 seconds
-                            setTimeout(() => {
-                                if (successMessage.parentElement) {
-                                    successMessage.remove();
-                                }
-                            }, 5000);
-                            
-                            // Play success sound
-                            if (soundEnabled) {
-                                createSound(800, 0.2, 'sine', 0.05);
-                                setTimeout(() => createSound(1200, 0.3, 'sine', 0.05), 200);
-                            }
-                        } else {
-                            // Error
-                            throw new Error('Form submission failed');
-                        }
-                    })
-                    .catch(error => {
-                        showTerminalMessage('TRANSMISSION ERROR - PLEASE TRY AGAIN');
-                        console.error('Error:', error);
-                        
-                        // Show error message
-                        const errorMessage = document.createElement('div');
-                        errorMessage.innerHTML = `
-                            <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                                        background: rgba(0,0,0,0.95); border: 2px solid var(--vhs-red); 
-                                        padding: 30px; z-index: 9999; max-width: 500px; text-align: center;">
-                                <h3 style="color: var(--vhs-red); margin-bottom: 20px;">TRANSMISSION FAILED</h3>
-                                <p style="color: #fff; margin-bottom: 20px;">There was an error sending your report.</p>
-                                <p style="color: #999; font-size: 12px; margin-bottom: 20px;">Please try again or email directly to: chilluminatipod@gmail.com</p>
-                                <button onclick="this.parentElement.remove()" 
-                                        style="background: transparent; border: 1px solid var(--vhs-red); 
-                                               color: var(--vhs-red); padding: 10px 20px; cursor: pointer;">
-                                    CLOSE
-                                </button>
-                            </div>
-                        `;
-                        document.body.appendChild(errorMessage);
-                        
-                        // Remove error message after 5 seconds
-                        setTimeout(() => {
-                            if (errorMessage.parentElement) {
-                                errorMessage.remove();
-                            }
-                        }, 5000);
-                    });
-                });
-            }
-        });
-        
-        // Theme Song Easter Egg
-        let themeEggSequence = [];
-        const themeEggCode = ['t', 'h', 'e', 'm', 'e'];
-        let themeAudio = null;
-        
-        // Preload theme song
-        function preloadThemeAudio() {
-            themeAudio = new Audio('./audio/theme.mp3');
-            themeAudio.volume = 0.5;
-            themeAudio.preload = 'auto';
-        }
-        
-        document.addEventListener('keypress', (e) => {
-            themeEggSequence.push(e.key.toLowerCase());
-            if (themeEggSequence.length > themeEggCode.length) {
-                themeEggSequence.shift();
-            }
-            
-            if (themeEggSequence.join('') === themeEggCode.join('')) {
-                playThemeSong();
-                themeEggSequence = [];
-            }
-        });
-        
-        function playThemeSong() {
-            if (!soundEnabled) {
-                showTerminalMessage('ENABLE SOUND TO HEAR THE THEME! 🔇');
-                return;
-            }
-            
-            showTerminalMessage('THEME SONG ACTIVATED! 🎵');
-            
-            // Visual effect
-            document.body.style.animation = 'theme-pulse 2s';
+            // Populate database after a short delay
             setTimeout(() => {
-                document.body.style.animation = '';
-            }, 2000);
-            
-            // Play the theme song
-            if (!themeAudio) {
-                themeAudio = new Audio('./audio/theme.mp3');
-                themeAudio.volume = 0.5;
-            }
-            
-            // Reset and play
-            themeAudio.currentTime = 0;
-            themeAudio.play().catch(err => {
-                console.log('Could not play theme song:', err);
-                showTerminalMessage('THEME SONG FILE NOT FOUND');
-            });
-        }
-        
-        // Preload audio when page loads
-        window.addEventListener('load', preloadThemeAudio);
-        
-        // Global episode count variable
-        let TOTAL_EPISODES = 302; // Default fallback value - update this if RSS fetch fails
-        // Add this code right after your TOTAL_EPISODES declaration (around line 2935)
-
-// Episode Database
-let EPISODE_DATABASE = [];
-
-// Function to fetch and populate episode database from RSS feed
-async function populateEpisodeDatabase() {
-    console.log('Fetching episode data from RSS feed...');
-    
-    const proxyUrl = 'https://api.allorigins.win/get?url=';
-    const rssUrl = 'https://audioboom.com/channels/5031584.rss';
-    
-    try {
-        const response = await fetch(proxyUrl + encodeURIComponent(rssUrl));
-        
-        if (!response.ok) {
-            throw new Error(`Failed to fetch RSS feed: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        const xmlText = data.contents;
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-        
-        // Check for parse errors
-        const parseError = xmlDoc.querySelector('parsererror');
-        if (parseError) {
-            throw new Error('Failed to parse RSS feed');
-        }
-        
-        // Get all episodes
-        const items = xmlDoc.getElementsByTagName('item');
-        console.log(`Found ${items.length} episodes in RSS feed`);
-        
-        // Clear existing database
-        EPISODE_DATABASE = [];
-        
-        // Process each episode
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            
-            // Extract episode data
-            const title = item.querySelector('title')?.textContent || '';
-            const description = item.querySelector('description')?.textContent || '';
-            const link = item.querySelector('link')?.textContent || '';
-            const pubDate = item.querySelector('pubDate')?.textContent || '';
-            const guid = item.querySelector('guid')?.textContent || '';
-            
-            // Try to extract episode number from title
-            let episodeNumber = null;
-            const numberMatch = title.match(/(?:Episode\s*|Ep\s*|#\s*)(\d+)/i);
-            if (numberMatch) {
-                episodeNumber = parseInt(numberMatch[1]);
-            } else {
-                // If no number in title, use reverse order (newest = highest number)
-                episodeNumber = items.length - i;
-            }
-            
-            // Extract Spotify ID if available from the link
-            let spotifyId = null;
-            if (link.includes('spotify.com/episode/')) {
-                const spotifyMatch = link.match(/episode\/([a-zA-Z0-9]+)/);
-                if (spotifyMatch) {
-                    spotifyId = spotifyMatch[1];
-                }
-            }
-            
-            // Create searchable text
-            const searchText = `${title} ${description}`.toLowerCase();
-            
-            // Add to database
-            EPISODE_DATABASE.push({
-                number: episodeNumber,
-                title: title,
-                description: description.replace(/<[^>]*>/g, '').substring(0, 300), // Strip HTML and limit length
-                link: link,
-                spotifyId: spotifyId,
-                pubDate: pubDate,
-                searchText: searchText
-            });
-        }
-        
-        // Sort by episode number (descending)
-        EPISODE_DATABASE.sort((a, b) => b.number - a.number);
-        
-        console.log(`✓ Episode database populated with ${EPISODE_DATABASE.length} episodes`);
-        
-        // Update total episodes count if we got more
-        if (EPISODE_DATABASE.length > TOTAL_EPISODES) {
-            TOTAL_EPISODES = EPISODE_DATABASE.length;
-            updateEpisodeReferences();
-        }
-        
-        return true;
-    } catch (error) {
-        console.error('Failed to populate episode database:', error);
-        
-        // Fallback: Create a basic database with just numbers
-        console.log('Creating fallback episode database...');
-        EPISODE_DATABASE = [];
-        for (let i = TOTAL_EPISODES; i >= 1; i--) {
-            EPISODE_DATABASE.push({
-                number: i,
-                title: `Episode ${i}`,
-                description: 'Episode details not available. Click to open in Spotify.',
-                link: 'https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP',
-                spotifyId: null,
-                searchText: `episode ${i}`
-            });
-        }
-        
-        return false;
-    }
-}
-
-// Update the loadEpisode function to handle cases where episode data might be incomplete
-function loadEpisode(episodeNumber) {
-    const episode = EPISODE_DATABASE.find(ep => ep.number === episodeNumber);
-    
-    if (!episode) {
-        // If not in database, create a basic entry
-        const fallbackEpisode = {
-            number: episodeNumber,
-            title: `Episode ${episodeNumber}`,
-            description: 'Click below to find this episode on Spotify.',
-            link: 'https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP',
-            spotifyId: null
-        };
-        showEpisodeModal(fallbackEpisode);
-        return;
-    }
-    
-    showEpisodeModal(episode);
-}
-
-// New function to show episode modal
-function showEpisodeModal(episode) {
-    // Show loading message
-    showTerminalMessage(`LOADING EPISODE ${episode.number}...`);
-    
-    // Create modal
-    const modal = document.createElement('div');
-    modal.className = 'episode-modal';
-    modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.95);
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: fadeIn 0.3s ease-in;
-    `;
-    
-    modal.innerHTML = `
-        <div style="background: #000; border: 3px solid var(--neon-green); padding: 30px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
-            <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 10px; right: 10px; background: transparent; border: 1px solid var(--vhs-red); color: var(--vhs-red); padding: 5px 15px; cursor: pointer; font-family: 'Courier New', monospace;">[ CLOSE ]</button>
-            
-            <h2 style="color: var(--neon-green); margin-bottom: 20px; font-size: 24px;">EPISODE ${episode.number}</h2>
-            <h3 style="color: #fff; margin-bottom: 20px;">${episode.title}</h3>
-            <p style="color: #ccc; margin-bottom: 30px;">${episode.description}</p>
-            
-            <div style="text-align: center;">
-                <a href="${episode.link}" target="_blank" class="vhs-button" style="display: inline-block;">
-                    ${episode.spotifyId ? 'PLAY ON SPOTIFY' : 'FIND ON SPOTIFY'}
-                </a>
-            </div>
-            
-            ${!episode.spotifyId ? '<p style="color: #999; text-align: center; margin-top: 20px; font-size: 12px;">Direct episode link not available. This will open the podcast page where you can find Episode ' + episode.number + '.</p>' : ''}
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Play load sound
-    if (soundEnabled) {
-        createSound(523, 0.1, 'sine', 0.05);
-        setTimeout(() => createSound(659, 0.1, 'sine', 0.05), 100);
-    }
-}
-
-// Call populateEpisodeDatabase after page loads
-document.addEventListener('DOMContentLoaded', function() {
-    // Populate database after a short delay to ensure page is ready
-    setTimeout(() => {
-        populateEpisodeDatabase().then(success => {
-            if (success) {
-                showTerminalMessage('EPISODE DATABASE LOADED');
-            } else {
-                showTerminalMessage('USING FALLBACK DATABASE');
-            }
+                populateEpisodeDatabase().then(success => {
+                    if (success) {
+                        showTerminalMessage('EPISODE DATABASE LOADED');
+                    } else {
+                        showTerminalMessage('USING FALLBACK DATABASE');
+                    }
+                });
+            }, 1500);
         });
-    }, 1000);
-});
 
-// Also update the searchEpisodes function to show better feedback
-function searchEpisodes() {
-    const searchInput = document.getElementById('episodeSearchInput');
-    const searchResults = document.getElementById('searchResults');
-    const query = searchInput.value.toLowerCase().trim();
-    
-    if (!query) {
-        searchResults.innerHTML = '<p class="search-status">ENTER SEARCH TERMS TO BEGIN...</p>';
-        return;
-    }
-    
-    // Check if database is loaded
-    if (EPISODE_DATABASE.length === 0) {
-        searchResults.innerHTML = '<p class="search-status">DATABASE STILL LOADING... PLEASE TRY AGAIN IN A MOMENT</p>';
-        // Try to load database again
-        populateEpisodeDatabase();
-        return;
-    }
-    
-    // Show searching status
-    searchResults.innerHTML = '<p class="search-status">SCANNING ARCHIVES...</p>';
-    
-    // Simulate search delay for effect
-    setTimeout(() => {
-        // Search through episode database
-        const results = EPISODE_DATABASE.filter(episode => {
-            // Search in title, description, and episode number
-            return episode.searchText.includes(query) || 
-                   episode.number.toString() === query ||
-                   episode.title.toLowerCase().includes(query);
-        });
-        
-        if (results.length === 0) {
-            searchResults.innerHTML = `
-                <p class="search-status">NO RESULTS FOUND FOR "${query.toUpperCase()}"</p>
-                <p class="search-status" style="margin-top: 10px; font-size: 12px;">
-                    Try different keywords or episode numbers
-                </p>
-            `;
-        } else {
-            // Build results HTML
-            let resultsHTML = `<p class="search-status">FOUND ${results.length} RESULT${results.length > 1 ? 'S' : ''}</p>`;
-            
-            // Show max 10 results
-            results.slice(0, 10).forEach(episode => {
-                resultsHTML += `
-                    <div class="search-result-item" onclick="loadEpisode(${episode.number})">
-                        <div class="result-episode-number">EPISODE ${episode.number}</div>
-                        <div class="result-episode-title">${episode.title}</div>
-                        <div class="result-episode-topics">${episode.description.substring(0, 150)}...</div>
-                    </div>
-                `;
-            });
-            
-            if (results.length > 10) {
-                resultsHTML += `<p class="search-status" style="margin-top: 10px; font-size: 12px;">
-                    Showing first 10 results of ${results.length}
-                </p>`;
-            }
-            
-            searchResults.innerHTML = resultsHTML;
-        }
-        
-        // Play search complete sound
-        if (soundEnabled) {
-            createSound(800, 0.1, 'sine', 0.03);
-            setTimeout(() => createSound(1200, 0.1, 'sine', 0.03), 100);
-        }
-    }, 1000);
-}
-        /* AUTOMATIC EPISODE COUNTER
-         * This code automatically counts your episodes from your RSS feed
-         * so you never have to manually update the numbers again!
-         * It fetches your RSS feed and counts all the episodes.
-         * If it can't reach the feed, it falls back to the default (302).
-         */
-        
-        // Function to fetch and count episodes from RSS feed
-        async function updateEpisodeCount() {
-            console.log('Attempting to fetch episode count...');
-            
-            // Try multiple proxy services in order
-            const proxyServices = [
-                {
-                    name: 'allorigins',
-                    url: 'https://api.allorigins.win/get?url=',
-                    parser: async (response) => {
-                        const data = await response.json();
-                        return data.contents;
-                    }
-                }
-            ];
-            
-            const rssUrl = 'https://audioboom.com/channels/5031584.rss';
-            
-            for (const proxy of proxyServices) {
-                try {
-                    console.log(`Trying ${proxy.name}...`);
-                    const response = await fetch(proxy.url + encodeURIComponent(rssUrl));
-                    
-                    if (!response.ok) {
-                        throw new Error(`${proxy.name} returned ${response.status}`);
-                    }
-                    
-                    const xmlText = await proxy.parser(response);
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-                    
-                    // Check for parse errors
-                    const parseError = xmlDoc.querySelector('parsererror');
-                    if (parseError) {
-                        throw new Error('Failed to parse RSS feed');
-                    }
-                    
-                    // Count all <item> tags in the RSS feed
-                    const items = xmlDoc.getElementsByTagName('item');
-                    console.log(`Found ${items.length} total items in RSS feed`);
-                    
-                    // Optional: Filter out minisodes if needed
-                    // Uncomment and modify if you want to exclude minisodes
-                    /*
-                    let mainEpisodeCount = 0;
-                    for (let item of items) {
-                        const title = item.querySelector('title')?.textContent || '';
-                        // Adjust this condition based on how your minisodes are titled
-                        if (!title.toLowerCase().includes('minisode') && 
-                            !title.toLowerCase().includes('mini-sode') &&
-                            !title.toLowerCase().includes('patreon')) {
-                            mainEpisodeCount++;
-                        }
-                    }
-                    TOTAL_EPISODES = mainEpisodeCount;
-                    console.log(`Found ${mainEpisodeCount} main episodes (excluding minisodes)`);
-                    */
-                    
-                    if (items.length > 0) {
-                        TOTAL_EPISODES = items.length;
-                        
-                        // Update all references to episode count
-                        updateEpisodeReferences();
-                        
-                        // Log success
-                        console.log(`✓ Episode count updated! Found ${TOTAL_EPISODES} episodes using ${proxy.name}`);
-                        return; // Success, exit the function
-                    }
-                } catch (error) {
-                    console.log(`${proxy.name} failed:`, error.message);
-                    // Continue to next proxy
-                }
-            }
-            
-            // If all proxies failed
-            console.log('All proxy services failed. Using default count of', TOTAL_EPISODES);
-            console.log('This is usually due to CORS restrictions. The episode count will remain at the default value.');
-            
-            // Still update references even with default count for consistency
-            updateEpisodeReferences();
-        }
-        
         // Function to update all episode count references in the page
         function updateEpisodeReferences() {
             console.log(`Updating all references to ${TOTAL_EPISODES} episodes...`);
@@ -3899,52 +3559,7 @@ function searchEpisodes() {
             if (machineArchiveText) {
                 machineArchiveText.textContent = `Execute the randomizer and discover an episode from our ${TOTAL_EPISODES}+ archive.`;
             }
-            
-            // Update any other text that contains "302+" pattern
-            const allTextNodes = document.evaluate(
-                "//text()[contains(., '302+')]",
-                document,
-                null,
-                XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
-                null
-            );
-            
-            for (let i = 0; i < allTextNodes.snapshotLength; i++) {
-                const textNode = allTextNodes.snapshotItem(i);
-                if (textNode.nodeValue) {
-                    textNode.nodeValue = textNode.nodeValue.replace(/302\+/g, `${TOTAL_EPISODES}+`);
-                }
-            }
-            
-            console.log('Episode references updated!');
         }
-        
-        // Debug function to show episode count status on page
-        function showEpisodeDebug() {
-            const debugDiv = document.createElement('div');
-            debugDiv.style.cssText = 'position: fixed; top: 10px; left: 10px; background: black; color: lime; padding: 10px; z-index: 9999; font-family: monospace; border: 1px solid lime;';
-            debugDiv.innerHTML = 'Episode Count: Loading...';
-            document.body.appendChild(debugDiv);
-            
-            // Update debug display after fetch attempt
-            setTimeout(() => {
-                debugDiv.innerHTML = `Episode Count: ${TOTAL_EPISODES} (RSS: ${TOTAL_EPISODES !== 302 ? 'Success' : 'Failed'})`;
-            }, 3000);
-        }
-        
-        // Call this when page loads
-        updateEpisodeCount();
-        
-        // Debug mode - uncomment the next line to show episode count status on page
-        // showEpisodeDebug();
-        
-        // Manual test function - type testEpisodeCount() in console to test
-        window.testEpisodeCount = async function() {
-            console.log('Testing episode counter...');
-            await updateEpisodeCount();
-            console.log('Current episode count:', TOTAL_EPISODES);
-            return TOTAL_EPISODES;
-        };
 
         // Loading Screen
         window.addEventListener('load', function() {
@@ -4368,16 +3983,193 @@ function searchEpisodes() {
                 }
             });
         }
+
+        // Theme Song Easter Egg
+        let themeEggSequence = [];
+        const themeEggCode = ['t', 'h', 'e', 'm', 'e'];
+        let themeAudio = null;
+        
+        // Preload theme song
+        function preloadThemeAudio() {
+            themeAudio = new Audio('./audio/theme.mp3');
+            themeAudio.volume = 0.5;
+            themeAudio.preload = 'auto';
+        }
+        
+        document.addEventListener('keypress', (e) => {
+            themeEggSequence.push(e.key.toLowerCase());
+            if (themeEggSequence.length > themeEggCode.length) {
+                themeEggSequence.shift();
+            }
+            
+            if (themeEggSequence.join('') === themeEggCode.join('')) {
+                playThemeSong();
+                themeEggSequence = [];
+            }
+        });
+        
+        function playThemeSong() {
+            if (!soundEnabled) {
+                showTerminalMessage('ENABLE SOUND TO HEAR THE THEME! 🔇');
+                return;
+            }
+            
+            showTerminalMessage('THEME SONG ACTIVATED! 🎵');
+            
+            // Visual effect
+            document.body.style.animation = 'theme-pulse 2s';
+            setTimeout(() => {
+                document.body.style.animation = '';
+            }, 2000);
+            
+            // Play the theme song
+            if (!themeAudio) {
+                themeAudio = new Audio('./audio/theme.mp3');
+                themeAudio.volume = 0.5;
+            }
+            
+            // Reset and play
+            themeAudio.currentTime = 0;
+            themeAudio.play().catch(err => {
+                console.log('Could not play theme song:', err);
+                showTerminalMessage('THEME SONG FILE NOT FOUND');
+            });
+        }
+        
+        // Preload audio when page loads
+        window.addEventListener('load', preloadThemeAudio);
+
+        // Enter key support for search
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('episodeSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchEpisodes();
+                    }
+                });
+            }
+        });
+        
+        // Better form handling for fan sightings with Formspree
+        document.addEventListener('DOMContentLoaded', function() {
+            const sightingForm = document.getElementById('sightingForm');
+            if (sightingForm) {
+                // Update subject line when type or location changes
+                const updateSubject = () => {
+                    const type = document.getElementById('incident-type').value;
+                    const location = document.getElementById('witness-location').value;
+                    const subjectField = document.getElementById('email-subject');
+                    
+                    if (type && location) {
+                        subjectField.value = `Sighting Report: ${type} - ${location}`;
+                    } else if (type) {
+                        subjectField.value = `Sighting Report: ${type}`;
+                    } else {
+                        subjectField.value = 'New Sighting Report';
+                    }
+                };
+                
+                document.getElementById('incident-type').addEventListener('change', updateSubject);
+                document.getElementById('witness-location').addEventListener('blur', updateSubject);
+                
+                sightingForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Show sending message
+                    showTerminalMessage('TRANSMITTING SIGHTING REPORT...');
+                    
+                    // Play transmission sound
+                    if (soundEnabled) {
+                        playStaticSound();
+                    }
+                    
+                    // Get form data
+                    const formData = new FormData(sightingForm);
+                    
+                    // Submit to Formspree
+                    fetch(sightingForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Success!
+                            showTerminalMessage('TRANSMISSION SUCCESSFUL - REPORT RECEIVED!');
+                            
+                            // Show success message
+                            const successMessage = document.createElement('div');
+                            successMessage.innerHTML = `
+                                <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                                            background: rgba(0,0,0,0.95); border: 2px solid var(--neon-green); 
+                                            padding: 30px; z-index: 9999; max-width: 500px; text-align: center;">
+                                    <h3 style="color: var(--neon-green); margin-bottom: 20px;">TRANSMISSION COMPLETE</h3>
+                                    <p style="color: #fff; margin-bottom: 20px;">Your sighting report has been successfully received!</p>
+                                    <p style="color: #999; font-size: 12px; margin-bottom: 20px;">We'll review your encounter and may feature it in a future episode.</p>
+                                    <button onclick="this.parentElement.remove()" 
+                                            style="background: transparent; border: 1px solid var(--neon-green); 
+                                                   color: var(--neon-green); padding: 10px 20px; cursor: pointer;">
+                                        CLOSE
+                                    </button>
+                                </div>
+                            `;
+                            document.body.appendChild(successMessage);
+                            
+                            // Reset form
+                            sightingForm.reset();
+                            
+                            // Remove success message after 5 seconds
+                            setTimeout(() => {
+                                if (successMessage.parentElement) {
+                                    successMessage.remove();
+                                }
+                            }, 5000);
+                            
+                            // Play success sound
+                            if (soundEnabled) {
+                                createSound(800, 0.2, 'sine', 0.05);
+                                setTimeout(() => createSound(1200, 0.3, 'sine', 0.05), 200);
+                            }
+                        } else {
+                            // Error
+                            throw new Error('Form submission failed');
+                        }
+                    })
+                    .catch(error => {
+                        showTerminalMessage('TRANSMISSION ERROR - PLEASE TRY AGAIN');
+                        console.error('Error:', error);
+                        
+                        // Show error message
+                        const errorMessage = document.createElement('div');
+                        errorMessage.innerHTML = `
+                            <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                                        background: rgba(0,0,0,0.95); border: 2px solid var(--vhs-red); 
+                                        padding: 30px; z-index: 9999; max-width: 500px; text-align: center;">
+                                <h3 style="color: var(--vhs-red); margin-bottom: 20px;">TRANSMISSION FAILED</h3>
+                                <p style="color: #fff; margin-bottom: 20px;">There was an error sending your report.</p>
+                                <p style="color: #999; font-size: 12px; margin-bottom: 20px;">Please try again or email directly to: chilluminatipod@gmail.com</p>
+                                <button onclick="this.parentElement.remove()" 
+                                        style="background: transparent; border: 1px solid var(--vhs-red); 
+                                               color: var(--vhs-red); padding: 10px 20px; cursor: pointer;">
+                                    CLOSE
+                                </button>
+                            </div>
+                        `;
+                        document.body.appendChild(errorMessage);
+                        
+                        // Remove error message after 5 seconds
+                        setTimeout(() => {
+                            if (errorMessage.parentElement) {
+                                errorMessage.remove();
+                            }
+                        }, 5000);
+                    });
+                });
+            }
+        });
     </script>
 </body>
-</html> 'corsproxy.io',
-                    url: 'https://corsproxy.io/?',
-                    parser: async (response) => await response.text()
-                },
-                {
-                    name: 'api.codetabs.com',
-                    url: 'https://api.codetabs.com/v1/proxy?quest=',
-                    parser: async (response) => await response.text()
-                },
-                {
-                    name:
+</html>
