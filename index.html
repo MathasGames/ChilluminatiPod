@@ -1542,7 +1542,7 @@
     <section id="episodes" class="episodes">
         <div class="container">
             <h2 class="section-title">EPISODE ROULETTE</h2>
-            <div class="terminal-header">302+ TRANSMISSIONS IN THE ARCHIVE...</div>
+            <div class="terminal-header" style="text-align: center;">302+ TRANSMISSIONS IN THE ARCHIVE...</div>
             
             <!-- Random Episode Machine -->
             <div class="episode-machine">
@@ -1684,6 +1684,66 @@
     </div>
 
     <script>
+        // Global episode count variable
+        let TOTAL_EPISODES = 302; // Default fallback value
+        
+        // Function to fetch and count episodes from RSS feed
+        async function updateEpisodeCount() {
+            try {
+                // Using a CORS proxy to fetch the RSS feed
+                const proxyUrl = 'https://api.allorigins.win/get?url=';
+                const rssUrl = 'https://audioboom.com/channels/5031584.rss';
+                
+                const response = await fetch(proxyUrl + encodeURIComponent(rssUrl));
+                const data = await response.json();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(data.contents, 'text/xml');
+                
+                // Count all <item> tags in the RSS feed
+                const items = xmlDoc.getElementsByTagName('item');
+                if (items.length > 0) {
+                    TOTAL_EPISODES = items.length;
+                    
+                    // Update all references to episode count
+                    updateEpisodeReferences();
+                }
+            } catch (error) {
+                console.log('Could not fetch RSS feed, using default count');
+            }
+        }
+        
+        // Function to update all episode count references in the page
+        function updateEpisodeReferences() {
+            // Update hero button
+            const heroButton = document.querySelector('.hero-content a[href*="spotify"][class="vhs-button"]');
+            if (heroButton && heroButton.textContent.includes('EPISODES')) {
+                heroButton.textContent = `VIEW ALL ${TOTAL_EPISODES}+ EPISODES`;
+            }
+            
+            // Update archive text in episodes section
+            const archiveTexts = document.querySelectorAll('.terminal-header');
+            archiveTexts.forEach(text => {
+                if (text.textContent.includes('TRANSMISSIONS IN THE ARCHIVE')) {
+                    text.textContent = `${TOTAL_EPISODES}+ TRANSMISSIONS IN THE ARCHIVE...`;
+                }
+            });
+            
+            // Update episode card
+            const episodeNumber = document.querySelector('.episode-number');
+            if (episodeNumber) {
+                episodeNumber.textContent = `EPISODE ${TOTAL_EPISODES}+`;
+            }
+            
+            // Update machine instructions
+            const machineInstructions = document.querySelector('.machine-instructions p:last-child');
+            if (machineInstructions && machineInstructions.textContent.includes('archive')) {
+                machineInstructions.textContent = `Execute the randomizer and discover an episode from our ${TOTAL_EPISODES}+ archive.`;
+            }
+        }
+        
+        // Call this when page loads
+        updateEpisodeCount();
+
         // Loading Screen
         window.addEventListener('load', function() {
             let progress = 0;
@@ -1867,14 +1927,14 @@
             // Spin through random numbers
             let spinCount = 0;
             const spinInterval = setInterval(() => {
-                slotNumber.textContent = Math.floor(Math.random() * 302) + 1;
+                slotNumber.textContent = Math.floor(Math.random() * TOTAL_EPISODES) + 1;
                 spinCount++;
                 
                 if (spinCount > 20) {
                     clearInterval(spinInterval);
                     
-                    // Final episode number (1-302)
-                    const finalEpisode = Math.floor(Math.random() * 302) + 1;
+                    // Final episode number (1 to TOTAL_EPISODES)
+                    const finalEpisode = Math.floor(Math.random() * TOTAL_EPISODES) + 1;
                     
                     // Stop spinning
                     slotNumber.classList.remove('spinning');
