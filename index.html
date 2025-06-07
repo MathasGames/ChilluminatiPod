@@ -1838,6 +1838,11 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        /* Episode Modal */
+        .episode-modal {
+            animation: fadeIn 0.3s ease-in;
+        }
 
         .episode-result h3 {
             color: var(--neon-green);
@@ -2777,13 +2782,9 @@
                     <div class="result-content">
                         <div class="result-number" id="resultNumber">Episode #???</div>
                         <div class="result-instruction">
-                            Head to Spotify and search for this episode number!
+                            Loading episode player...
                         </div>
                         <div class="result-buttons">
-                            <a href="https://open.spotify.com/show/71Dnx4yKkQ0TfPWWu3swYP?si=887d9ae4368f4efd" 
-                               class="vhs-button" target="_blank">
-                                GO TO SPOTIFY
-                            </a>
                             <button class="vhs-button" onclick="spinForEpisode()">
                                 SPIN AGAIN
                             </button>
@@ -3667,9 +3668,6 @@
         // Call this when page loads
         updateEpisodeCount();
         
-        // Also update references immediately with default count for consistency
-        updateEpisodeReferences();
-        
         // Debug mode - uncomment the next line to show episode count status on page
         // showEpisodeDebug();
         
@@ -3938,15 +3936,23 @@
                 if (spinCount > 20) {
                     clearInterval(spinInterval);
                     
-                    // Final episode number (1 to TOTAL_EPISODES)
-                    const finalEpisode = Math.floor(Math.random() * TOTAL_EPISODES) + 1;
+                    // Pick a random episode from the database
+                    let finalEpisode;
+                    if (EPISODE_DATABASE.length > 0) {
+                        // Pick from actual episodes
+                        const randomIndex = Math.floor(Math.random() * EPISODE_DATABASE.length);
+                        finalEpisode = EPISODE_DATABASE[randomIndex].number;
+                    } else {
+                        // Fallback to random number
+                        finalEpisode = Math.floor(Math.random() * TOTAL_EPISODES) + 1;
+                    }
                     
                     // Stop spinning
                     slotNumber.classList.remove('spinning');
                     slotNumber.textContent = finalEpisode;
                     slotTitle.textContent = 'EPISODE SELECTED!';
                     
-                    // Show result
+                    // Show result and load episode
                     setTimeout(() => {
                         document.getElementById('resultNumber').textContent = `Episode #${finalEpisode}`;
                         episodeResult.style.display = 'block';
@@ -3956,7 +3962,12 @@
                         lights.forEach(light => light.classList.remove('active'));
                         
                         // Show terminal message
-                        showTerminalMessage(`EPISODE ${finalEpisode} SELECTED - CHECK SPOTIFY!`);
+                        showTerminalMessage(`EPISODE ${finalEpisode} SELECTED!`);
+                        
+                        // Automatically load the episode after a short delay
+                        setTimeout(() => {
+                            loadEpisode(finalEpisode);
+                        }, 1000);
                         
                         isSpinning = false;
                     }, 500);
