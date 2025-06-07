@@ -1542,7 +1542,7 @@
     <section id="episodes" class="episodes">
         <div class="container">
             <h2 class="section-title">EPISODE ROULETTE</h2>
-            <div class="terminal-header" style="text-align: center;">302+ TRANSMISSIONS IN THE ARCHIVE...</div>
+            <div class="terminal-header" style="text-align: center;" id="archiveCount">302+ TRANSMISSIONS IN THE ARCHIVE...</div>
             
             <!-- Random Episode Machine -->
             <div class="episode-machine">
@@ -1687,28 +1687,78 @@
         // Global episode count variable
         let TOTAL_EPISODES = 302; // Default fallback value
         
+        /* AUTOMATIC EPISODE COUNTER
+         * This code automatically counts your episodes from your RSS feed
+         * so you never have to manually update the numbers again!
+         * It fetches your RSS feed and counts all the episodes.
+         * If it can't reach the feed, it falls back to the default (302).
+         */
+        
         // Function to fetch and count episodes from RSS feed
         async function updateEpisodeCount() {
             try {
+                console.log('Attempting to fetch episode count...');
+                
                 // Using a CORS proxy to fetch the RSS feed
                 const proxyUrl = 'https://api.allorigins.win/get?url=';
                 const rssUrl = 'https://audioboom.com/channels/5031584.rss';
                 
                 const response = await fetch(proxyUrl + encodeURIComponent(rssUrl));
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch RSS feed');
+                }
+                
                 const data = await response.json();
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(data.contents, 'text/xml');
                 
+                // Check for parse errors
+                const parseError = xmlDoc.querySelector('parsererror');
+                if (parseError) {
+                    throw new Error('Failed to parse RSS feed');
+                }
+                
                 // Count all <item> tags in the RSS feed
                 const items = xmlDoc.getElementsByTagName('item');
+                console.log(`Found ${items.length} total items in RSS feed`);
+                
+                // Optional: Filter out minisodes if needed
+                // Uncomment and modify if you want to exclude minisodes
+                /*
+                let mainEpisodeCount = 0;
+                for (let item of items) {
+                    const title = item.querySelector('title')?.textContent || '';
+                    if (!title.toLowerCase().includes('minisode')) {
+                        mainEpisodeCount++;
+                    }
+                }
+                TOTAL_EPISODES = mainEpisodeCount;
+                */
+                
                 if (items.length > 0) {
                     TOTAL_EPISODES = items.length;
                     
                     // Update all references to episode count
                     updateEpisodeReferences();
+                    
+                    // Log success (you can see this in browser console with F12)
+                    console.log(`✓ Episode count updated! Found ${TOTAL_EPISODES} episodes.`);
+                } else {
+                    console.log('No episodes found in RSS feed');
                 }
             } catch (error) {
-                console.log('Could not fetch RSS feed, using default count');
+                console.log('Could not fetch RSS feed:', error.message);
+                console.log('Using default count of', TOTAL_EPISODES);
+                
+                // Try alternative method - direct fetch without proxy
+                try {
+                    console.log('Trying direct fetch...');
+                    const response = await fetch('https://audioboom.com/channels/5031584.rss');
+                    console.log('Direct fetch response:', response.status);
+                } catch (e) {
+                    console.log('Direct fetch also failed - this is normal due to CORS');
+                }
             }
         }
         
@@ -1721,12 +1771,10 @@
             }
             
             // Update archive text in episodes section
-            const archiveTexts = document.querySelectorAll('.terminal-header');
-            archiveTexts.forEach(text => {
-                if (text.textContent.includes('TRANSMISSIONS IN THE ARCHIVE')) {
-                    text.textContent = `${TOTAL_EPISODES}+ TRANSMISSIONS IN THE ARCHIVE...`;
-                }
-            });
+            const archiveCount = document.getElementById('archiveCount');
+            if (archiveCount) {
+                archiveCount.textContent = `${TOTAL_EPISODES}+ TRANSMISSIONS IN THE ARCHIVE...`;
+            }
             
             // Update episode card
             const episodeNumber = document.querySelector('.episode-number');
@@ -1741,8 +1789,32 @@
             }
         }
         
+        // Debug function to show episode count status on page
+        function showEpisodeDebug() {
+            const debugDiv = document.createElement('div');
+            debugDiv.style.cssText = 'position: fixed; top: 10px; left: 10px; background: black; color: lime; padding: 10px; z-index: 9999; font-family: monospace; border: 1px solid lime;';
+            debugDiv.innerHTML = 'Episode Count: Loading...';
+            document.body.appendChild(debugDiv);
+            
+            // Update debug display after fetch attempt
+            setTimeout(() => {
+                debugDiv.innerHTML = `Episode Count: ${TOTAL_EPISODES} (RSS: ${TOTAL_EPISODES !== 302 ? 'Success' : 'Failed'})`;
+            }, 3000);
+        }
+        
         // Call this when page loads
         updateEpisodeCount();
+        
+        // Debug mode - uncomment the next line to show episode count status on page
+        // showEpisodeDebug();
+        
+        // Manual test function - type testEpisodeCount() in console to test
+        window.testEpisodeCount = async function() {
+            console.log('Testing episode counter...');
+            await updateEpisodeCount();
+            console.log('Current episode count:', TOTAL_EPISODES);
+            return TOTAL_EPISODES;
+        };
 
         // Loading Screen
         window.addEventListener('load', function() {
