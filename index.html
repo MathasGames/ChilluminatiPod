@@ -3276,18 +3276,16 @@
                     e.preventDefault();
                     
                     // Get form data
-                    const formData = new FormData(sightingForm);
-                    const witnessName = formData.get('witness_name');
-                    const location = formData.get('location');
-                    const date = formData.get('date');
-                    const type = formData.get('type');
-                    const details = formData.get('details');
-                    const email = formData.get('email');
+                    const witnessName = document.getElementById('witness-name').value;
+                    const location = document.getElementById('witness-location').value;
+                    const date = document.getElementById('incident-date').value;
+                    const type = document.getElementById('incident-type').value;
+                    const details = document.getElementById('incident-details').value;
+                    const email = document.getElementById('witness-email').value;
                     
-                    // Format email
+                    // Format email body
                     const subject = `SIGHTING REPORT: ${type} - ${location}`;
-                    const body = `
-CHILLUMINATI SIGHTING REPORT
+                    const body = `CHILLUMINATI SIGHTING REPORT
 ============================
 
 WITNESS: ${witnessName}
@@ -3300,8 +3298,7 @@ DETAILED REPORT:
 ${details}
 
 ============================
-[Sent via ChilluminatiPodcast.com]
-                    `.trim();
+[Sent via ChilluminatiPodcast.com]`;
                     
                     // Create mailto link
                     const mailtoLink = `mailto:chilluminatipod@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -3314,13 +3311,49 @@ ${details}
                         playStaticSound();
                     }
                     
-                    // Open email client
-                    window.location.href = mailtoLink;
+                    // Try multiple methods to open email
+                    // Method 1: Create a temporary link and click it
+                    const tempLink = document.createElement('a');
+                    tempLink.href = mailtoLink;
+                    tempLink.style.display = 'none';
+                    document.body.appendChild(tempLink);
+                    tempLink.click();
+                    document.body.removeChild(tempLink);
+                    
+                    // Show alternative if email doesn't open
+                    setTimeout(() => {
+                        showTerminalMessage('EMAIL CLIENT OPENED - OR COPY EMAIL: chilluminatipod@gmail.com');
+                        
+                        // Also show the email in a copyable format
+                        const copyMessage = document.createElement('div');
+                        copyMessage.innerHTML = `
+                            <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                                        background: rgba(0,0,0,0.95); border: 2px solid var(--vhs-purple); 
+                                        padding: 30px; z-index: 9999; max-width: 500px; text-align: center;">
+                                <h3 style="color: var(--vhs-purple); margin-bottom: 20px;">EMAIL DETAILS</h3>
+                                <p style="color: #fff; margin-bottom: 10px;">If your email client didn't open, send to:</p>
+                                <p style="color: var(--neon-green); font-size: 18px; margin-bottom: 20px;">chilluminatipod@gmail.com</p>
+                                <p style="color: #999; font-size: 12px; margin-bottom: 20px;">Subject: ${subject}</p>
+                                <button onclick="this.parentElement.remove()" 
+                                        style="background: transparent; border: 1px solid var(--vhs-purple); 
+                                               color: var(--vhs-purple); padding: 10px 20px; cursor: pointer;">
+                                    CLOSE
+                                </button>
+                            </div>
+                        `;
+                        document.body.appendChild(copyMessage);
+                        
+                        // Remove after 10 seconds
+                        setTimeout(() => {
+                            if (copyMessage.parentElement) {
+                                copyMessage.remove();
+                            }
+                        }, 10000);
+                    }, 1000);
                     
                     // Reset form after a delay
                     setTimeout(() => {
                         sightingForm.reset();
-                        showTerminalMessage('FORM RESET - READY FOR NEW REPORT');
                     }, 2000);
                 });
             }
